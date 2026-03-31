@@ -16,6 +16,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -80,6 +83,7 @@ fun SongsScreen(
         onMoreClick = viewModel::onMoreClick,
         onDismissSheet = viewModel::onDismissSheet,
         onViewAlbum = viewModel::onViewAlbum,
+        onClearSearch = viewModel::onClearSearch
     )
 }
 
@@ -96,6 +100,7 @@ private fun SongsContent(
     onMoreClick: (Song) -> Unit,
     onDismissSheet: () -> Unit,
     onViewAlbum: (Song) -> Unit,
+    onClearSearch: () -> Unit,
 ) {
     val pullRefreshState = rememberPullRefreshState(
         refreshing = state.isRefreshing,
@@ -125,6 +130,7 @@ private fun SongsContent(
             onQueryChange = onQueryChange,
             onToggleSearch = onToggleSearch,
             onSearch = onSearch,
+            onClear = onClearSearch
         )
 
         Box(
@@ -188,6 +194,7 @@ private fun SongsTopBar(
     onQueryChange: (String) -> Unit,
     onToggleSearch: () -> Unit,
     onSearch: () -> Unit,
+    onClear: () -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -225,8 +232,17 @@ private fun SongsTopBar(
                 Icon(
                     painter = painterResource(R.drawable.ic_search),
                     contentDescription = "Search",
-                    tint = Color(0x25FFFFFF),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            },
+            trailingIcon = {
+                IconButton(onClick = onClear) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Clear",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             },
             placeholder = { Text("Search") },
             singleLine = true,
@@ -307,6 +323,7 @@ private fun SongsContentPreview() {
                 onMoreClick = {},
                 onDismissSheet = {},
                 onViewAlbum = {},
+                onClearSearch = {}
             )
         }
     }
@@ -365,6 +382,7 @@ private fun SongsSearchPreview() {
                 onMoreClick = {},
                 onDismissSheet = {},
                 onViewAlbum = {},
+                onClearSearch = {}
             )
         }
     }

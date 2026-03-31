@@ -33,6 +33,7 @@ interface SongsViewModel {
     fun onDismissSheet()
     fun onViewAlbum(song: Song)
     fun onRefresh()
+    fun onClearSearch()
 }
 
 @HiltViewModel
@@ -103,6 +104,11 @@ class SongsViewModelImpl @Inject constructor(
                     }
                 }
         }
+    }
+
+    override fun onClearSearch() {
+        val query = _state.value.query.trim()
+        if (query.isBlank()) onToggleSearch() else onQueryChange(query = "")
     }
 
     override fun onLoadMore() {
