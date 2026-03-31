@@ -30,8 +30,12 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,8 +48,11 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.musicai.R
 import com.musicai.domain.model.Song
+import com.musicai.ui.player.model.PlayerNavigationEvent
 import com.musicai.ui.player.model.PlayerState
 import com.musicai.ui.player.model.PlayerViewModel
+import com.musicai.ui.songs.MoreOptionsSheet
+import com.musicai.ui.songs.model.SongsNavigationEvent
 import com.musicai.ui.theme.ColorBackground
 import com.musicai.ui.theme.ColorSheetBackground
 import com.musicai.ui.theme.MusicAITheme
@@ -56,9 +63,17 @@ import com.musicai.utils.DurationUtils
 @Composable
 fun PlayerScreen(
     viewModel: PlayerViewModel,
+    onNavigateToAlbum: (Long) -> Unit,
     onBack: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            if (event is PlayerNavigationEvent.NavigateToAlbum)
+                onNavigateToAlbum(event.collectionId)
+        }
+    }
 
     PlayerContent(
         state = state,
@@ -67,6 +82,7 @@ fun PlayerScreen(
         onPrevious = viewModel::onPrevious,
         onPlayPause = viewModel::onPlayPause,
         onNext = viewModel::onNext,
+        onViewAlbum = viewModel::onViewAlbum,
     )
 }
 
@@ -78,7 +94,11 @@ private fun PlayerContent(
     onPrevious: () -> Unit,
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
+    onViewAlbum: () -> Unit,
 ) {
+
+    var shouldDisplayModal by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -113,7 +133,9 @@ private fun PlayerContent(
             IconButton(
                 modifier = Modifier
                     .padding(start = 8.dp),
-                onClick = { /* TODO: show options */ }) {
+                onClick = {
+                    shouldDisplayModal = true
+                }) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = "More options",
@@ -293,6 +315,14 @@ private fun PlayerContent(
                     color = MaterialTheme.colorScheme.error,
                 )
             }
+
+            if (shouldDisplayModal && state.song != null) {
+                MoreOptionsSheet(
+                    song = state.song,
+                    onDismiss = { shouldDisplayModal = false },
+                    onViewAlbum = { onViewAlbum() },
+                )
+            }
         }
     }
 }
@@ -327,7 +357,8 @@ fun PlayerScreenPreview() {
                 onSeek = {},
                 onPrevious = {},
                 onPlayPause = {},
-                onNext = {}
+                onNext = {},
+                onViewAlbum = {},
             )
         }
     }

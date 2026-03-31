@@ -81,3 +81,11 @@ val Typography.displayNormal: TextStyle
         fontSize = 32.sp,
         lineHeight = 40.sp,
     )
+
+val Typography.screenTitle: TextStyle
+    get() = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.W600,
+        fontSize = 24.sp,
+        lineHeight = 28.sp,
+    )

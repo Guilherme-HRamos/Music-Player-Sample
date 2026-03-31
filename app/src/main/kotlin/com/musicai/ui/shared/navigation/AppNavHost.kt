@@ -59,6 +59,9 @@ fun AppNavHost() {
             val viewModel: PlayerViewModelImpl = hiltViewModel()
             PlayerScreen(
                 viewModel = viewModel,
+                onNavigateToAlbum = { collectionId ->
+                    navController.navigate(Routes.album(collectionId))
+                },
                 onBack = { navController.popBackStack() },
             )
         }

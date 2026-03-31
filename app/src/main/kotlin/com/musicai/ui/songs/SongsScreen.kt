@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -35,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -48,6 +50,7 @@ import com.musicai.ui.songs.model.SongsViewModel
 import com.musicai.ui.theme.MusicAITheme
 import com.musicai.ui.theme.components.AppErrorState
 import com.musicai.ui.theme.components.AppLoadingIndicator
+import com.musicai.ui.theme.screenTitle
 
 @Composable
 fun SongsScreen(
@@ -186,17 +189,18 @@ private fun SongsTopBar(
     onToggleSearch: () -> Unit,
     onSearch: () -> Unit,
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .padding(top = 8.dp),
+            .height(72.dp)
+            .padding(horizontal = 24.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = "Songs",
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.screenTitle,
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.weight(1f),
         )
@@ -227,7 +231,10 @@ private fun SongsTopBar(
             placeholder = { Text("Search") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = { onSearch() }),
+            keyboardActions = KeyboardActions(onSearch = {
+                onSearch()
+                keyboardController?.hide()
+            }),
             colors = TextFieldDefaults.colors(
                 // Hide the indicator line to keep it clean
                 focusedIndicatorColor = Color.Transparent,
