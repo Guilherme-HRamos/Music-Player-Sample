@@ -29,6 +29,7 @@ interface PlayerViewModel {
     fun onNext()
     fun onPrevious()
     fun onSeek(positionMs: Long)
+    fun onToggleLoop()
     fun onViewAlbum()
 }
 
@@ -89,9 +90,17 @@ class PlayerViewModelImpl @Inject constructor(
                 startProgressTracking()
                 viewModelScope.launch { saveRecentSong(song) }
             }
-            setOnCompletionListener {
-                stopProgressTracking()
-                _state.update { it.copy(isPlaying = false, currentPositionMs = 0L) }
+            setOnCompletionListener { mp ->
+                if (_state.value.loopEnabled) {
+                    mp.seekTo(0)
+                    mp.start()
+                    _state.update { it.copy(currentPositionMs = 0L) }
+                    startProgressTracking()
+                } else {
+                    stopProgressTracking()
+                    _state.update { it.copy(isPlaying = false, currentPositionMs = 0L) }
+                    onNext()
+                }
             }
             setOnErrorListener { _, _, _ ->
                 _state.update {
@@ -163,6 +172,10 @@ class PlayerViewModelImpl @Inject constructor(
     private fun stopProgressTracking() {
         progressJob?.cancel()
         progressJob = null
+    }
+
+    override fun onToggleLoop() {
+        _state.update { it.copy(loopEnabled = !it.loopEnabled) }
     }
 
     override fun onViewAlbum() {

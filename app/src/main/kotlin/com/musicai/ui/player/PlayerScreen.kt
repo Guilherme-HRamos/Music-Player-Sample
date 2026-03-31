@@ -82,6 +82,7 @@ fun PlayerScreen(
         onPrevious = viewModel::onPrevious,
         onPlayPause = viewModel::onPlayPause,
         onNext = viewModel::onNext,
+        onToggleLoop = viewModel::onToggleLoop,
         onViewAlbum = viewModel::onViewAlbum,
     )
 }
@@ -94,6 +95,7 @@ private fun PlayerContent(
     onPrevious: () -> Unit,
     onPlayPause: () -> Unit,
     onNext: () -> Unit,
+    onToggleLoop: () -> Unit,
     onViewAlbum: () -> Unit,
 ) {
 
@@ -293,11 +295,15 @@ private fun PlayerContent(
                         modifier = Modifier.weight(1f),
                         contentAlignment = Alignment.CenterEnd
                     ) {
-                        IconButton(onClick = { /* TODO: repeat */ }) {
+                        IconButton(onClick = onToggleLoop) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_repeat),
                                 contentDescription = "Repeat",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                tint = if (state.loopEnabled) {
+                                    MaterialTheme.colorScheme.onBackground
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
                                 modifier = Modifier.size(24.dp),
                             )
                         }
@@ -358,6 +364,7 @@ fun PlayerScreenPreview() {
                 onPrevious = {},
                 onPlayPause = {},
                 onNext = {},
+                onToggleLoop = {},
                 onViewAlbum = {},
             )
         }
