@@ -8,16 +8,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.musicai.ui.album.AlbumScreen
-import com.musicai.ui.album.model.AlbumViewModel
 import com.musicai.ui.album.model.AlbumViewModelImpl
 import com.musicai.ui.player.PlayerScreen
-import com.musicai.ui.player.model.PlayerViewModel
 import com.musicai.ui.player.model.PlayerViewModelImpl
 import com.musicai.ui.songs.SongsScreen
-import com.musicai.ui.songs.model.SongsViewModel
 import com.musicai.ui.songs.model.SongsViewModelImpl
-import com.musicai.ui.splash.ui.SplashScreen
-import dagger.hilt.android.lifecycle.HiltViewModel
 
 @Composable
 fun AppNavHost() {
@@ -25,18 +20,8 @@ fun AppNavHost() {
 
     NavHost(
         navController = navController,
-        startDestination = Routes.SPLASH,
+        startDestination = Routes.SONGS,
     ) {
-        composable(Routes.SPLASH) {
-            SplashScreen(
-                onNavigateToSongs = {
-                    navController.navigate(Routes.SONGS) {
-                        popUpTo(Routes.SPLASH) { inclusive = true }
-                    }
-                },
-            )
-        }
-
         composable(Routes.SONGS) {
             val viewModel: SongsViewModelImpl = hiltViewModel()
             SongsScreen(

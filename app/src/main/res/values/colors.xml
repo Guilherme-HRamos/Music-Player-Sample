@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Background do adaptive icon (círculo do ícone de launcher/splash) -->
+    <color name="ic_launcher_background">#0D0F14</color>
+    <!-- Cor de fundo da tela de splash -->
+    <color name="splash_background">#0D0F14</color>
+</resources>

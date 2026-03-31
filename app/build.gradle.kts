@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.material)
+    implementation(libs.androidx.core.splashscreen)
 
     // Retrofit & OkHttp
     implementation(libs.retrofit)

@@ -7,4 +7,13 @@
         <item name="android:statusBarColor">?android:attr/windowBackground</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
+
+    <style name="Theme.MusicAI.Splash" parent="Theme.MusicAI">
+        <item name="android:windowBackground">@color/splash_background</item>
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="android:windowSplashScreenBehavior" tools:targetApi="33">icon_preferred</item>
+        <item name="postSplashScreenTheme">@style/Theme.MusicAI</item>
+    </style>
 </resources>
