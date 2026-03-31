@@ -1,6 +1,6 @@
 package com.musicai.ui.player.model
 
-import com.musicai.domain.Song
+import com.musicai.domain.model.Song
 
 data class PlayerState(
     val song: Song? = null,

@@ -34,8 +34,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.musicai.domain.Album
-import com.musicai.domain.Song
+import com.musicai.domain.model.Album
+import com.musicai.domain.model.Song
 import com.musicai.ui.album.model.AlbumState
 import com.musicai.ui.album.model.AlbumViewModel
 import com.musicai.ui.theme.ColorDarkText

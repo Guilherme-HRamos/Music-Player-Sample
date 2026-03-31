@@ -1,4 +1,4 @@
-package com.musicai.domain
+package com.musicai.domain.model
 
 data class Album(
     val collectionId: Long,

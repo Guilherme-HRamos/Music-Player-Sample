@@ -1,6 +1,6 @@
 package com.musicai.ui.album.model
 
-import com.musicai.domain.Album
+import com.musicai.domain.model.Album
 
 data class AlbumState(
     val album: Album? = null,

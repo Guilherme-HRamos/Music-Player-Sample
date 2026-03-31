@@ -24,7 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.musicai.R
-import com.musicai.domain.Song
+import com.musicai.domain.model.Song
 import com.musicai.ui.theme.ColorSheetBackground
 import com.musicai.ui.theme.MusicAITheme
 import com.musicai.ui.theme.labelMediumNormal

@@ -43,7 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.musicai.R
-import com.musicai.domain.Song
+import com.musicai.domain.model.Song
 import com.musicai.ui.player.model.PlayerState
 import com.musicai.ui.player.model.PlayerViewModel
 import com.musicai.ui.theme.ColorBackground

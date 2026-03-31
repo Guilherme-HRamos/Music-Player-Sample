@@ -1,6 +1,6 @@
 package com.musicai.ui.songs.model
 
-import com.musicai.domain.Song
+import com.musicai.domain.model.Song
 
 data class SongsState(
     val query: String = "",

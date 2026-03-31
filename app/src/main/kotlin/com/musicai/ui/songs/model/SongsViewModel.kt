@@ -2,7 +2,7 @@ package com.musicai.ui.songs.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.musicai.domain.Song
+import com.musicai.domain.model.Song
 import com.musicai.utils.logWip
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
