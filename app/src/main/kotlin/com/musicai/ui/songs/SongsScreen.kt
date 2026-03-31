@@ -1,5 +1,6 @@
 package com.musicai.ui.songs
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -47,6 +49,7 @@ import com.musicai.ui.shared.SongListItem
 import com.musicai.ui.songs.model.SongsNavigationEvent
 import com.musicai.ui.songs.model.SongsState
 import com.musicai.ui.songs.model.SongsViewModel
+import com.musicai.ui.theme.ColorBackground
 import com.musicai.ui.theme.MusicAITheme
 import com.musicai.ui.theme.components.AppErrorState
 import com.musicai.ui.theme.components.AppLoadingIndicator
@@ -192,8 +195,8 @@ private fun SongsTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = 24.dp)
+            .padding(top = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -204,6 +207,7 @@ private fun SongsTopBar(
         )
         if (!isSearchActive)
             IconButton(
+                modifier = Modifier.size(48.dp),
                 onClick = onToggleSearch,
             ) {
                 Icon(

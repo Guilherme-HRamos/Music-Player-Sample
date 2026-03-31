@@ -27,6 +27,7 @@ import com.musicai.R
 import com.musicai.domain.Song
 import com.musicai.ui.theme.ColorSheetBackground
 import com.musicai.ui.theme.MusicAITheme
+import com.musicai.ui.theme.labelMediumNormal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,7 +47,7 @@ fun MoreOptionsSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
-                .padding(bottom = 36.dp),
+                .padding(bottom = 24.dp),
         ) {
             Text(
                 text = song.trackName,
@@ -57,9 +58,11 @@ fun MoreOptionsSheet(
             )
             Text(
                 text = song.artistName,
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelMediumNormal,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(14.dp))
