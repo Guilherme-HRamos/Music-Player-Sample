@@ -17,6 +17,7 @@ import com.musicai.ui.songs.SongsScreen
 import com.musicai.ui.songs.model.SongsViewModel
 import com.musicai.ui.songs.model.SongsViewModelImpl
 import com.musicai.ui.splash.ui.SplashScreen
+import dagger.hilt.android.lifecycle.HiltViewModel
 
 @Composable
 fun AppNavHost() {
@@ -37,7 +38,7 @@ fun AppNavHost() {
         }
 
         composable(Routes.SONGS) {
-            val viewModel: SongsViewModel = SongsViewModelImpl()
+            val viewModel: SongsViewModelImpl = hiltViewModel()
             SongsScreen(
                 viewModel = viewModel,
                 onNavigateToPlayer = { trackId ->
@@ -55,7 +56,7 @@ fun AppNavHost() {
                 navArgument("trackId") { type = NavType.LongType },
             ),
         ) {
-            val viewModel: PlayerViewModel = PlayerViewModelImpl()
+            val viewModel: PlayerViewModelImpl = hiltViewModel()
             PlayerScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },
@@ -68,7 +69,7 @@ fun AppNavHost() {
                 navArgument("collectionId") { type = NavType.LongType },
             ),
         ) {
-            val viewModel: AlbumViewModel = AlbumViewModelImpl ()
+            val viewModel: AlbumViewModelImpl = hiltViewModel()
             AlbumScreen(
                 viewModel = viewModel,
                 onBack = { navController.popBackStack() },

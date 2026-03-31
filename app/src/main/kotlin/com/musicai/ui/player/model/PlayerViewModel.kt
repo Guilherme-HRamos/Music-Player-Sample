@@ -3,9 +3,11 @@ package com.musicai.ui.player.model
 import androidx.lifecycle.ViewModel
 import com.musicai.ui.songs.model.SongsViewModel
 import com.musicai.utils.logWip
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
 
 interface PlayerViewModel {
     val state: StateFlow<PlayerState>
@@ -15,7 +17,8 @@ interface PlayerViewModel {
     fun onSeek(positionMs: Long)
 }
 
-class PlayerViewModelImpl : ViewModel(), PlayerViewModel {
+@HiltViewModel
+class PlayerViewModelImpl @Inject constructor(): ViewModel(), PlayerViewModel {
 
     private val _state = MutableStateFlow(PlayerState())
     override val state = _state.asStateFlow()
