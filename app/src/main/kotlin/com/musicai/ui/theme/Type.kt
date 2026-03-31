@@ -65,3 +65,19 @@ val Typography = Typography(
         letterSpacing = 0.5.sp,
     ),
 )
+
+val Typography.labelMediumNormal: TextStyle
+    get() = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+    )
+
+val Typography.displayNormal: TextStyle
+    get() = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 32.sp,
+        lineHeight = 40.sp,
+    )

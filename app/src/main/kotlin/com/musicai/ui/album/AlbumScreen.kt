@@ -152,10 +152,11 @@ fun AlbumScreenContent(
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Column(
-                                modifier = Modifier.height(40.dp),
-                                verticalArrangement = Arrangement.Center,
+                                modifier = Modifier.height(44.dp),
+                                verticalArrangement = Arrangement.SpaceBetween,
                             ) {
                                 Text(
+                                    modifier = Modifier.padding(top = 2.dp),
                                     text = song.trackName,
                                     style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.onBackground,
@@ -163,7 +164,7 @@ fun AlbumScreenContent(
                                     overflow = TextOverflow.Ellipsis,
                                 )
                                 Text(
-                                    modifier = Modifier.padding(top = 4.dp),
+                                    modifier = Modifier.padding(bottom = 2.dp),
                                     text = song.artistName,
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Light),
                                     color = ColorDarkText,
