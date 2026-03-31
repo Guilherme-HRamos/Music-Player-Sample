@@ -29,11 +29,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.musicai.R
 import com.musicai.domain.model.Album
 import com.musicai.domain.model.Song
 import com.musicai.ui.album.model.AlbumState
@@ -73,7 +75,8 @@ fun AlbumScreenContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 8.dp),
+                .height(72.dp)
+                .padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
@@ -107,13 +110,15 @@ fun AlbumScreenContent(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(bottom = 16.dp)
+                                .padding(horizontal = 16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             AsyncImage(
                                 model = album.artworkUrl,
                                 contentDescription = album.collectionName,
                                 contentScale = ContentScale.Crop,
+                                placeholder = painterResource(R.drawable.cover_sample),
                                 modifier = Modifier
                                     .size(120.dp)
                                     .clip(RoundedCornerShape(20.dp)),
@@ -156,7 +161,7 @@ fun AlbumScreenContent(
                                 verticalArrangement = Arrangement.SpaceBetween,
                             ) {
                                 Text(
-                                    modifier = Modifier.padding(top = 2.dp),
+                                    modifier = Modifier.padding(top = 4.dp),
                                     text = song.trackName,
                                     style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.onBackground,
@@ -164,9 +169,9 @@ fun AlbumScreenContent(
                                     overflow = TextOverflow.Ellipsis,
                                 )
                                 Text(
-                                    modifier = Modifier.padding(bottom = 2.dp),
+                                    modifier = Modifier.padding(bottom = 4.dp),
                                     text = song.artistName,
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Light),
+                                    style = MaterialTheme.typography.labelSmall,
                                     color = ColorDarkText,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
