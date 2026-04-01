@@ -7,7 +7,7 @@ import org.junit.Test
 class SongEntityMapperTest {
 
     @Test
-    fun `toDomain - todos os campos são mapeados corretamente`() {
+    fun `toDomain maps all fields correctly`() {
         // Given
         val entity = aSongEntity(
             trackId = 7L,
@@ -35,7 +35,7 @@ class SongEntityMapperTest {
     }
 
     @Test
-    fun `toDomain - previewUrl null é propagado para o domínio`() {
+    fun `toDomain propagates null previewUrl to domain`() {
         // Given
         val entity = aSongEntity(previewUrl = null)
 
@@ -47,7 +47,7 @@ class SongEntityMapperTest {
     }
 
     @Test
-    fun `toDomain - trackTimeMillis null é propagado para o domínio`() {
+    fun `toDomain propagates null trackTimeMillis to domain`() {
         // Given
         val entity = aSongEntity(trackTimeMillis = null)
 
@@ -59,15 +59,15 @@ class SongEntityMapperTest {
     }
 
     @Test
-    fun `toDomain - searchQuery e lastPlayedAt não existem no modelo de domínio`() {
-        // Given — entity com dados de cache que não devem vazar para o domínio
+    fun `toDomain does not leak searchQuery or lastPlayedAt into domain model`() {
+        // Given — entity with cache fields that must not reach the domain
         val entity = aSongEntity(searchQuery = "killers", lastPlayedAt = 1234567890L)
 
         // When
         val song = entity.toDomain()
 
-        // Then — Song não expõe essas propriedades (verificação em compile-time pelo tipo)
-        // O teste documenta que esses campos são intencionalmente excluídos do domínio
+        // Then — Song does not have searchQuery or lastPlayedAt (compile-time guarantee)
+        // This test documents that those fields are intentionally excluded from the domain
         assertEquals(entity.trackId, song.trackId)
         assertEquals(entity.trackName, song.trackName)
     }

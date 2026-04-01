@@ -37,7 +37,7 @@ class SongsViewModelTest {
     // region onSearch
 
     @Test
-    fun `onSearch - estado de loading antes de completar`() = runTest {
+    fun `onSearch shows loading state before coroutine completes`() = runTest {
         // Given
         fakeSearch.result = Result.success(someSongs(count = 5))
         vm.onQueryChange("killers")
@@ -45,7 +45,7 @@ class SongsViewModelTest {
         // When
         vm.onSearch()
 
-        // Then — antes de avançar as coroutines, isLoading deve ser true
+        // Then — isLoading must be true before coroutines advance
         assertTrue(vm.state.value.isLoading)
 
         advanceUntilIdle()
@@ -53,7 +53,7 @@ class SongsViewModelTest {
     }
 
     @Test
-    fun `onSearch - sucesso popula songs e limpa erro`() = runTest {
+    fun `onSearch populates songs and clears error on success`() = runTest {
         // Given
         val songs = someSongs(count = 5)
         fakeSearch.result = Result.success(songs)
@@ -70,8 +70,8 @@ class SongsViewModelTest {
     }
 
     @Test
-    fun `onSearch - hasMore é false quando resultado tem menos de 20 songs`() = runTest {
-        // Given — 18 songs (abaixo do threshold de 20)
+    fun `onSearch sets hasMore to false when result has fewer than 20 songs`() = runTest {
+        // Given — 18 songs, below the page-size threshold of 20
         fakeSearch.result = Result.success(someSongs(count = 18))
         vm.onQueryChange("killers")
 
@@ -84,7 +84,7 @@ class SongsViewModelTest {
     }
 
     @Test
-    fun `onSearch - hasMore é true quando resultado tem exatamente 20 songs`() = runTest {
+    fun `onSearch sets hasMore to true when result has exactly 20 songs`() = runTest {
         // Given
         fakeSearch.result = Result.success(someSongs(count = 20))
         vm.onQueryChange("killers")
@@ -98,7 +98,7 @@ class SongsViewModelTest {
     }
 
     @Test
-    fun `onSearch - query em branco é ignorada`() = runTest {
+    fun `onSearch ignores blank query`() = runTest {
         // Given
         vm.onQueryChange("   ")
 
@@ -111,7 +111,7 @@ class SongsViewModelTest {
     }
 
     @Test
-    fun `onSearch - falha atualiza estado de erro`() = runTest {
+    fun `onSearch sets error state on failure`() = runTest {
         // Given
         fakeSearch.result = Result.failure(RuntimeException("Search failed"))
         vm.onQueryChange("killers")
@@ -130,8 +130,8 @@ class SongsViewModelTest {
     // region onLoadMore
 
     @Test
-    fun `onLoadMore - acumula songs de páginas subsequentes`() = runTest {
-        // Given — página 0 retorna 20 songs, página 1 retorna 5
+    fun `onLoadMore appends songs from subsequent pages`() = runTest {
+        // Given — page 0 returns 20 songs, page 1 returns 5
         fakeSearch.resultsQueue.addLast(Result.success(someSongs(count = 20, startId = 1)))
         fakeSearch.resultsQueue.addLast(Result.success(someSongs(count = 5, startId = 21)))
         vm.onQueryChange("killers")
@@ -149,25 +149,26 @@ class SongsViewModelTest {
     }
 
     @Test
-    fun `onLoadMore - ignorado quando hasMore é false`() = runTest {
-        // Given — forçamos hasMore = false via busca com < 20 resultados
+    fun `onLoadMore is ignored when hasMore is false`() = runTest {
+        // Given — search result below threshold forces hasMore = false
         fakeSearch.result = Result.success(someSongs(count = 5))
         vm.onQueryChange("killers")
         vm.onSearch()
         advanceUntilIdle()
-        assertEquals(1, fakeSearch.callCount)
+        val callCountAfterSearch = fakeSearch.callCount
 
         // When
         vm.onLoadMore()
         advanceUntilIdle()
 
-        // Then
-        assertEquals(1, fakeSearch.callCount) // nenhuma chamada adicional
+        // Then — no additional use case calls
+        assertEquals(callCountAfterSearch, fakeSearch.callCount)
     }
 
     @Test
-    fun `onLoadMore - ignorado quando query está em branco`() = runTest {
-        // Given — state padrão sem query
+    fun `onLoadMore is ignored when query is blank`() = runTest {
+        // Given — default state, no query set
+
         // When
         vm.onLoadMore()
         advanceUntilIdle()
@@ -178,10 +179,10 @@ class SongsViewModelTest {
 
     // endregion
 
-    // region recent songs
+    // region recent songs reactivity
 
     @Test
-    fun `recent songs atualizam state quando search está inativo`() = runTest {
+    fun `recent songs update state when search is inactive`() = runTest {
         // Given
         val recentSongs = someSongs(count = 3)
 
@@ -194,28 +195,28 @@ class SongsViewModelTest {
     }
 
     @Test
-    fun `recent songs não substituem state quando search está ativo`() = runTest {
-        // Given — ativar busca e popular com resultado
+    fun `recent songs do not replace state when search is active`() = runTest {
+        // Given — activate search and load results
         fakeSearch.result = Result.success(someSongs(count = 5))
         vm.onQueryChange("killers")
         vm.onSearch()
         advanceUntilIdle()
         val songsFromSearch = vm.state.value.songs
 
-        // When — recentes chegam enquanto search está ativo
+        // When — recent songs arrive while search is active
         fakeRecent.songsFlow.emit(someSongs(count = 10, startId = 100))
         advanceUntilIdle()
 
-        // Then — songs da busca são mantidas
+        // Then — search results are preserved
         assertEquals(songsFromSearch, vm.state.value.songs)
     }
 
     // endregion
 
-    // region onSongClick / navigation
+    // region navigation events
 
     @Test
-    fun `onSongClick - emite NavigateToPlayer com trackId correto`() = runTest {
+    fun `onSongClick emits NavigateToPlayer with correct trackId`() = runTest {
         // Given
         val song = aSong(trackId = 42L)
         fakeSearch.result = Result.success(listOf(song))
@@ -227,6 +228,7 @@ class SongsViewModelTest {
         vm.navigationEvents.test {
             vm.onSongClick(song)
             advanceUntilIdle()
+
             val event = awaitItem()
             assertTrue(event is SongsNavigationEvent.NavigateToPlayer)
             assertEquals(42L, (event as SongsNavigationEvent.NavigateToPlayer).trackId)
@@ -234,7 +236,7 @@ class SongsViewModelTest {
     }
 
     @Test
-    fun `onViewAlbum - emite NavigateToAlbum e limpa selectedSong`() = runTest {
+    fun `onViewAlbum emits NavigateToAlbum and clears selectedSong`() = runTest {
         // Given
         val song = aSong(trackId = 1L, collectionId = 99L)
         vm.onMoreClick(song)
@@ -244,6 +246,7 @@ class SongsViewModelTest {
         vm.navigationEvents.test {
             vm.onViewAlbum(song)
             advanceUntilIdle()
+
             val event = awaitItem()
             assertTrue(event is SongsNavigationEvent.NavigateToAlbum)
             assertEquals(99L, (event as SongsNavigationEvent.NavigateToAlbum).collectionId)
@@ -253,10 +256,10 @@ class SongsViewModelTest {
 
     // endregion
 
-    // region onMoreClick / onDismissSheet
+    // region bottom sheet
 
     @Test
-    fun `onMoreClick - define selectedSong no state`() = runTest {
+    fun `onMoreClick sets selectedSong in state`() {
         // Given
         val song = aSong(42L)
 
@@ -268,7 +271,7 @@ class SongsViewModelTest {
     }
 
     @Test
-    fun `onDismissSheet - limpa selectedSong`() = runTest {
+    fun `onDismissSheet clears selectedSong`() {
         // Given
         vm.onMoreClick(aSong(1L))
 
@@ -281,10 +284,12 @@ class SongsViewModelTest {
 
     // endregion
 
-    // region onToggleSearch / onClearSearch
+    // region toggle search / clear search
 
     @Test
-    fun `onToggleSearch - ativa modo de busca`() = runTest {
+    fun `onToggleSearch activates search mode`() {
+        // Given — search is inactive by default
+
         // When
         vm.onToggleSearch()
 
@@ -293,16 +298,16 @@ class SongsViewModelTest {
     }
 
     @Test
-    fun `onToggleSearch - desativa busca e limpa songs quando já estava ativo`() = runTest {
-        // Given
-        vm.onToggleSearch() // ativa
+    fun `onToggleSearch deactivates search and clears songs when already active`() = runTest {
+        // Given — activate and load results
+        vm.onToggleSearch()
         fakeSearch.result = Result.success(someSongs(count = 5))
         vm.onQueryChange("killers")
         vm.onSearch()
         advanceUntilIdle()
 
         // When
-        vm.onToggleSearch() // desativa
+        vm.onToggleSearch()
 
         // Then
         assertFalse(vm.state.value.isSearchActive)
@@ -311,7 +316,7 @@ class SongsViewModelTest {
     }
 
     @Test
-    fun `onClearSearch - limpa query quando há texto`() = runTest {
+    fun `onClearSearch clears query when query has text`() {
         // Given
         vm.onQueryChange("killers")
 
@@ -320,13 +325,13 @@ class SongsViewModelTest {
 
         // Then
         assertEquals("", vm.state.value.query)
-        assertTrue(vm.state.value.isSearchActive) // search continua ativo
+        assertTrue(vm.state.value.isSearchActive)
     }
 
     @Test
-    fun `onClearSearch - desativa search quando query está vazia`() = runTest {
-        // Given
-        vm.onToggleSearch() // ativa search sem query
+    fun `onClearSearch deactivates search when query is empty`() {
+        // Given — search activated with no query
+        vm.onToggleSearch()
 
         // When
         vm.onClearSearch()

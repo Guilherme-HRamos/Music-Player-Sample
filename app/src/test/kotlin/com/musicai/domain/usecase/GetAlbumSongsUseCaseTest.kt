@@ -20,7 +20,7 @@ class GetAlbumSongsUseCaseTest {
     }
 
     @Test
-    fun `metadata do Album vem da primeira música da lista`() = runTest {
+    fun `invoke builds Album with metadata from the first song`() = runTest {
         // Given
         val songs = listOf(
             aSong(trackId = 1L, collectionName = "Sam's Town", artistName = "The Killers", artworkUrl = "https://art.jpg"),
@@ -41,7 +41,7 @@ class GetAlbumSongsUseCaseTest {
     }
 
     @Test
-    fun `lista vazia de songs produz Album com strings vazias`() = runTest {
+    fun `invoke returns Album with empty strings when songs list is empty`() = runTest {
         // Given
         fakeRepository.albumSongsResult = Result.success(emptyList())
 
@@ -58,7 +58,7 @@ class GetAlbumSongsUseCaseTest {
     }
 
     @Test
-    fun `collectionId do parâmetro é usado no Album e passado ao repositório`() = runTest {
+    fun `invoke uses collectionId from parameter in Album and passes it to repository`() = runTest {
         // Given
         fakeRepository.albumSongsResult = Result.success(listOf(aSong()))
 
@@ -71,7 +71,7 @@ class GetAlbumSongsUseCaseTest {
     }
 
     @Test
-    fun `falha do repositório é propagada como Result Failure`() = runTest {
+    fun `invoke propagates repository failure as Result Failure`() = runTest {
         // Given
         fakeRepository.albumSongsResult = Result.failure(RuntimeException("not found"))
 

@@ -32,17 +32,16 @@ class AlbumViewModelTest {
         fakeGetAlbum = FakeGetAlbumSongsUseCase()
     }
 
-    private fun buildViewModel(
-        collectionId: Long = DEFAULT_COLLECTION_ID,
-    ) = AlbumViewModelImpl(
-        savedStateHandle = SavedStateHandle(mapOf("collectionId" to collectionId)),
-        getAlbumSongs = fakeGetAlbum,
-    )
+    private fun buildViewModel(collectionId: Long = DEFAULT_COLLECTION_ID) =
+        AlbumViewModelImpl(
+            savedStateHandle = SavedStateHandle(mapOf("collectionId" to collectionId)),
+            getAlbumSongs = fakeGetAlbum,
+        )
 
-    // region init / loadAlbum
+    // region init
 
     @Test
-    fun `init - carrega album com sucesso e atualiza state`() = runTest {
+    fun `init loads album successfully and updates state`() = runTest {
         // Given
         val album = anAlbum(collectionId = DEFAULT_COLLECTION_ID)
         fakeGetAlbum.result = Result.success(album)
@@ -58,19 +57,19 @@ class AlbumViewModelTest {
     }
 
     @Test
-    fun `init - isLoading é true enquanto a carga está em andamento`() = runTest {
-        // Given — fakeGetAlbum nunca retorna (resultado nunca é consumido sem advanceUntilIdle)
+    fun `init sets isLoading to true while fetch is in progress`() = runTest {
+        // Given
         fakeGetAlbum.result = Result.success(anAlbum())
 
-        // When — construir sem avançar as coroutines
+        // When — build without advancing coroutines
         val vm = buildViewModel()
 
-        // Then — isLoading configurado como true no construtor antes do launch completar
+        // Then — isLoading is set before the coroutine completes
         assertTrue(vm.state.value.isLoading)
     }
 
     @Test
-    fun `init - erro popula state com mensagem e sem album`() = runTest {
+    fun `init sets error state and clears album on failure`() = runTest {
         // Given
         fakeGetAlbum.result = Result.failure(RuntimeException("Server error"))
 
@@ -85,7 +84,7 @@ class AlbumViewModelTest {
     }
 
     @Test
-    fun `init - erro sem mensagem usa fallback genérico`() = runTest {
+    fun `init uses generic fallback message when exception has no message`() = runTest {
         // Given
         fakeGetAlbum.result = Result.failure(RuntimeException())
 
@@ -98,7 +97,7 @@ class AlbumViewModelTest {
     }
 
     @Test
-    fun `collectionId é lido do SavedStateHandle e passado ao use case`() = runTest {
+    fun `init reads collectionId from SavedStateHandle and passes it to use case`() = runTest {
         // Given
         fakeGetAlbum.result = Result.success(anAlbum(collectionId = 9999L))
 
@@ -115,14 +114,14 @@ class AlbumViewModelTest {
     // region onRetry
 
     @Test
-    fun `onRetry - re-carrega album após erro`() = runTest {
-        // Given — primeira carga falha
+    fun `onRetry reloads album successfully after an error`() = runTest {
+        // Given — first load fails
         fakeGetAlbum.result = Result.failure(RuntimeException("Network error"))
         val vm = buildViewModel()
         advanceUntilIdle()
         assertNotNull(vm.state.value.error)
 
-        // When — resultado corrigido e retry acionado
+        // When — fix the result and trigger retry
         val album = anAlbum()
         fakeGetAlbum.result = Result.success(album)
         vm.onRetry()
@@ -134,17 +133,17 @@ class AlbumViewModelTest {
     }
 
     @Test
-    fun `onRetry - limpa erro e mostra loading antes de completar`() = runTest {
-        // Given
+    fun `onRetry clears error and shows loading state before completing`() = runTest {
+        // Given — first load fails
         fakeGetAlbum.result = Result.failure(RuntimeException("fail"))
         val vm = buildViewModel()
         advanceUntilIdle()
 
-        // When
+        // When — swap result and retry without advancing
         fakeGetAlbum.result = Result.success(anAlbum())
         vm.onRetry()
 
-        // Then — enquanto está carregando, error é null e isLoading é true
+        // Then — error is cleared and loading starts
         assertNull(vm.state.value.error)
         assertTrue(vm.state.value.isLoading)
     }

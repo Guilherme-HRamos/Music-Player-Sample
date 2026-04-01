@@ -20,7 +20,7 @@ class PlayerControllerTest {
     // region selectSong
 
     @Test
-    fun `selectSong - encontra song pelo trackId e define índice correto`() {
+    fun `selectSong finds song by trackId and sets the correct index`() {
         // Given
         val songs = listOf(aSong(10L), aSong(20L), aSong(30L))
 
@@ -33,7 +33,7 @@ class PlayerControllerTest {
     }
 
     @Test
-    fun `selectSong - trackId desconhecido usa índice 0 por padrão`() {
+    fun `selectSong defaults to index 0 when trackId is not found`() {
         // Given
         val songs = listOf(aSong(10L), aSong(20L), aSong(30L))
 
@@ -46,7 +46,7 @@ class PlayerControllerTest {
     }
 
     @Test
-    fun `selectSong - substitui playlist anterior`() {
+    fun `selectSong replaces the previous playlist`() {
         // Given
         val firstPlaylist = listOf(aSong(1L), aSong(2L))
         val secondPlaylist = listOf(aSong(10L), aSong(20L), aSong(30L))
@@ -65,10 +65,10 @@ class PlayerControllerTest {
     // region next
 
     @Test
-    fun `next - avança o índice e retorna a próxima song`() {
+    fun `next advances index and returns the next song`() {
         // Given
         val songs = listOf(aSong(1L), aSong(2L), aSong(3L))
-        controller.selectSong(songs, trackId = 1L) // índice 0
+        controller.selectSong(songs, trackId = 1L)
 
         // When
         val next = controller.next()
@@ -79,10 +79,10 @@ class PlayerControllerTest {
     }
 
     @Test
-    fun `next - retorna null e não avança quando está na última song`() {
+    fun `next returns null and does not advance when on the last song`() {
         // Given
         val songs = listOf(aSong(1L), aSong(2L), aSong(3L))
-        controller.selectSong(songs, trackId = 3L) // índice 2 (lastIndex)
+        controller.selectSong(songs, trackId = 3L)
 
         // When
         val next = controller.next()
@@ -93,15 +93,15 @@ class PlayerControllerTest {
     }
 
     @Test
-    fun `next - após avançar hasNext e hasPrevious refletem posição correta`() {
+    fun `next reflects correct hasNext and hasPrevious after advancing`() {
         // Given
         val songs = listOf(aSong(1L), aSong(2L), aSong(3L))
         controller.selectSong(songs, trackId = 1L)
 
         // When
-        controller.next() // agora no índice 1
+        controller.next()
 
-        // Then
+        // Then — now at index 1
         assertTrue(controller.hasNext)
         assertTrue(controller.hasPrevious)
     }
@@ -111,10 +111,10 @@ class PlayerControllerTest {
     // region previous
 
     @Test
-    fun `previous - volta o índice e retorna a song anterior`() {
+    fun `previous decrements index and returns the previous song`() {
         // Given
         val songs = listOf(aSong(1L), aSong(2L), aSong(3L))
-        controller.selectSong(songs, trackId = 3L) // índice 2
+        controller.selectSong(songs, trackId = 3L)
 
         // When
         val prev = controller.previous()
@@ -125,10 +125,10 @@ class PlayerControllerTest {
     }
 
     @Test
-    fun `previous - retorna null e não volta quando está na primeira song`() {
+    fun `previous returns null and does not go back when on the first song`() {
         // Given
         val songs = listOf(aSong(1L), aSong(2L), aSong(3L))
-        controller.selectSong(songs, trackId = 1L) // índice 0
+        controller.selectSong(songs, trackId = 1L)
 
         // When
         val prev = controller.previous()
@@ -143,30 +143,32 @@ class PlayerControllerTest {
     // region hasNext / hasPrevious
 
     @Test
-    fun `hasNext é false quando está na última song`() {
+    fun `hasNext is false when on the last song`() {
         // Given
         val songs = listOf(aSong(1L), aSong(2L))
-        controller.selectSong(songs, trackId = 2L) // lastIndex
+        controller.selectSong(songs, trackId = 2L)
 
-        // Then
+        // When / Then
         assertFalse(controller.hasNext)
     }
 
     @Test
-    fun `hasPrevious é false quando está na primeira song`() {
+    fun `hasPrevious is false when on the first song`() {
         // Given
         val songs = listOf(aSong(1L), aSong(2L))
-        controller.selectSong(songs, trackId = 1L) // índice 0
+        controller.selectSong(songs, trackId = 1L)
 
-        // Then
+        // When / Then
         assertFalse(controller.hasPrevious)
     }
 
     @Test
-    fun `hasNext e hasPrevious são true quando no meio da playlist`() {
+    fun `hasNext and hasPrevious are both true when in the middle of the playlist`() {
         // Given
         val songs = listOf(aSong(1L), aSong(2L), aSong(3L))
-        controller.selectSong(songs, trackId = 2L) // índice 1
+
+        // When
+        controller.selectSong(songs, trackId = 2L)
 
         // Then
         assertTrue(controller.hasNext)

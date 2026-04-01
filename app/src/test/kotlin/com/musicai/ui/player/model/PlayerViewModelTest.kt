@@ -1,7 +1,7 @@
 package com.musicai.ui.player.model
 
-import app.cash.turbine.test
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import app.cash.turbine.test
 import com.musicai.domain.model.Song
 import com.musicai.fakes.FakeAudioPlayer
 import com.musicai.fakes.FakeSaveRecentSongUseCase
@@ -11,7 +11,6 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -38,25 +37,22 @@ class PlayerViewModelTest {
     }
 
     /**
-     * Constrói o ViewModel e injeta o FakeAudioPlayer via factory.
-     * Como [PlayerViewModelImpl.audioPlayerFactory] é `internal var`, ela pode ser
-     * acessada e sobrescrita no mesmo módulo (test source set).
+     * Builds the ViewModel and injects [FakeAudioPlayer] via the internal factory.
      *
-     * Estratégia: construir sem song selecionada (init não chama initializePlayer),
-     * depois injetar a factory antes de acionar qualquer operação que crie um player.
+     * Strategy: build without a selected song so that [init] does not call [initializePlayer],
+     * then inject the factory before any operation that triggers player creation (onNext/onPrevious).
      */
-    private fun buildViewModel(): PlayerViewModelImpl {
-        return PlayerViewModelImpl(playerController, fakeSaveRecent).also {
+    private fun buildViewModel(): PlayerViewModelImpl =
+        PlayerViewModelImpl(playerController, fakeSaveRecent).also {
             it.audioPlayerFactory = { fakePlayer }
         }
-    }
 
     /**
-     * Constrói o ViewModel com song que tem previewUrl null — seguro porque
-     * initializePlayer retorna antecipadamente sem chamar a factory.
+     * Builds with a song that has a null previewUrl — safe because [initializePlayer]
+     * returns early before calling the factory.
      */
-    private fun buildViewModelWithNullPreviewSong(): PlayerViewModelImpl {
-        val song = aSong(trackId = 1L, previewUrl = null)
+    private fun buildViewModelWithNullPreviewSong(collectionId: Long = 100L): PlayerViewModelImpl {
+        val song = aSong(trackId = 1L, previewUrl = null, collectionId = collectionId)
         playerController.selectSong(listOf(song), song.trackId)
         return PlayerViewModelImpl(playerController, fakeSaveRecent)
     }
@@ -64,9 +60,11 @@ class PlayerViewModelTest {
     // region init
 
     @Test
-    fun `init com song sem previewUrl define estado de erro sem criar player`() = runTest {
+    fun `init sets error state when current song has no previewUrl`() = runTest {
         // Given
         val vm = buildViewModelWithNullPreviewSong()
+
+        // When — init runs during construction
 
         // Then
         assertEquals("Preview not available for this track", vm.state.value.error)
@@ -74,8 +72,10 @@ class PlayerViewModelTest {
     }
 
     @Test
-    fun `init sem song selecionada mantém estado padrão`() = runTest {
-        // Given — playerController sem selectSong chamado (currentSong é null)
+    fun `init keeps default state when no song is selected`() = runTest {
+        // Given — PlayerController with empty playlist
+
+        // When
         val vm = buildViewModel()
 
         // Then
@@ -86,10 +86,10 @@ class PlayerViewModelTest {
 
     // endregion
 
-    // region initializePlayer via onNext
+    // region player initialization via onNext
 
     @Test
-    fun `onNext - chama prepareAsync com a URL da próxima song`() = runTest {
+    fun `onNext initializes player with the next song previewUrl`() = runTest {
         // Given
         val song1 = aSong(trackId = 1L, previewUrl = "https://preview1.m4a")
         val song2 = aSong(trackId = 2L, previewUrl = "https://preview2.m4a")
@@ -107,8 +107,8 @@ class PlayerViewModelTest {
     }
 
     @Test
-    fun `onNext - não faz nada quando não há próxima song`() = runTest {
-        // Given — apenas 1 song na playlist (no next disponível)
+    fun `onNext does nothing when there is no next song`() = runTest {
+        // Given — single song in playlist, already at last index
         val song = aSong(trackId = 1L)
         playerController.selectSong(listOf(song), song.trackId)
         val vm = buildViewModel()
@@ -126,33 +126,13 @@ class PlayerViewModelTest {
     // region onPrepared callback
 
     @Test
-    fun `simulatePrepared - inicia playback e registra song como recente`() = runTest {
-        // Given
-        val song = aSong(trackId = 5L, previewUrl = "https://preview.m4a")
-        playerController.selectSong(listOf(song), song.trackId)
-        val vm = PlayerViewModelImpl(playerController, fakeSaveRecent).also {
-            it.audioPlayerFactory = { fakePlayer }
-        }
-        // onNext aciona initializePlayer com fakePlayer já injetado
-        vm.onNext()
-        advanceUntilIdle()
-
-        // When
-        fakePlayer.simulatePrepared()
-        advanceUntilIdle()
-
-        // Then — simulatePrepared não funciona para song já carregada neste fluxo,
-        // mas funciona ao acionar via playlist de 2 songs
-    }
-
-    @Test
-    fun `simulatePrepared após switchSong - inicia playback e salva recente`() = runTest {
-        // Given — playlist de 2 songs; vm inicia sem song e factory injetada
-        val song1 = aSong(trackId = 1L, previewUrl = "https://preview1.m4a")
-        val song2 = aSong(trackId = 2L, previewUrl = "https://preview2.m4a")
+    fun `simulatePrepared starts playback updates duration and saves song as recent`() = runTest {
+        // Given — playlist of 2 songs; factory injected; trigger switch via onNext
+        val song1 = aSong(trackId = 1L)
+        val song2 = aSong(trackId = 2L, previewUrl = "https://preview.m4a")
         playerController.selectSong(listOf(song1, song2), song1.trackId)
         val vm = buildViewModel()
-        vm.onNext() // carrega song2 com fakePlayer
+        vm.onNext()
         advanceUntilIdle()
 
         // When
@@ -171,10 +151,10 @@ class PlayerViewModelTest {
     // region onPlayPause
 
     @Test
-    fun `onPlayPause - pausa quando player está tocando`() = runTest {
-        // Given — preparar player e iniciar playback
-        val song = aSong(trackId = 1L, previewUrl = "https://preview.m4a")
-        playerController.selectSong(listOf(aSong(trackId = 0L), song), song.trackId)
+    fun `onPlayPause pauses playback when player is playing`() = runTest {
+        // Given — switch to a song and trigger onPrepared to start playback
+        val songs = listOf(aSong(trackId = 1L), aSong(trackId = 2L, previewUrl = "https://p.m4a"))
+        playerController.selectSong(songs, songs[0].trackId)
         val vm = buildViewModel()
         vm.onNext()
         advanceUntilIdle()
@@ -191,20 +171,20 @@ class PlayerViewModelTest {
     }
 
     @Test
-    fun `onPlayPause - retoma quando player está pausado`() = runTest {
-        // Given — preparar e pausar
-        val songs = listOf(aSong(trackId = 1L), aSong(trackId = 2L, previewUrl = "https://preview.m4a"))
-        playerController.selectSong(songs, songs.first().trackId)
+    fun `onPlayPause resumes playback when player is paused`() = runTest {
+        // Given — start and pause
+        val songs = listOf(aSong(trackId = 1L), aSong(trackId = 2L, previewUrl = "https://p.m4a"))
+        playerController.selectSong(songs, songs[0].trackId)
         val vm = buildViewModel()
         vm.onNext()
         advanceUntilIdle()
         fakePlayer.simulatePrepared()
         advanceUntilIdle()
-        vm.onPlayPause() // pausa
+        vm.onPlayPause()
         assertFalse(vm.state.value.isPlaying)
 
         // When
-        vm.onPlayPause() // retoma
+        vm.onPlayPause()
 
         // Then
         assertTrue(vm.state.value.isPlaying)
@@ -216,8 +196,8 @@ class PlayerViewModelTest {
     // region onSeek
 
     @Test
-    fun `onSeek - atualiza posição no state e repassa para o player`() = runTest {
-        // Given — iniciar player
+    fun `onSeek updates currentPositionMs in state and forwards to player`() = runTest {
+        // Given — player initialized
         val songs = listOf(aSong(trackId = 1L), aSong(trackId = 2L, previewUrl = "https://p.m4a"))
         playerController.selectSong(songs, songs[0].trackId)
         val vm = buildViewModel()
@@ -237,7 +217,7 @@ class PlayerViewModelTest {
     // region onToggleLoop
 
     @Test
-    fun `onToggleLoop - alterna loopEnabled a cada chamada`() = runTest {
+    fun `onToggleLoop alternates loopEnabled on each call`() = runTest {
         // Given
         val vm = buildViewModel()
         assertFalse(vm.state.value.loopEnabled)
@@ -260,16 +240,16 @@ class PlayerViewModelTest {
     // region onCompletion
 
     @Test
-    fun `onCompletion sem loop - avança para próxima song`() = runTest {
-        // Given — playlist com 3 songs; posicionar no índice 0 e avançar para song2 via onNext
+    fun `onCompletion without loop advances to next song`() = runTest {
+        // Given — 3-song playlist; navigate to song2 so song3 is the next
         val songs = listOf(
             aSong(trackId = 1L),
             aSong(trackId = 2L, previewUrl = "https://p2.m4a"),
             aSong(trackId = 3L, previewUrl = "https://p3.m4a"),
         )
-        playerController.selectSong(songs, songs[0].trackId) // índice 0
+        playerController.selectSong(songs, songs[0].trackId)
         val vm = buildViewModel()
-        vm.onNext() // carrega song2 (índice 1)
+        vm.onNext()
         advanceUntilIdle()
         fakePlayer.simulatePrepared()
         advanceUntilIdle()
@@ -278,12 +258,12 @@ class PlayerViewModelTest {
         fakePlayer.simulateCompletion()
         advanceUntilIdle()
 
-        // Then — deve ter avançado para song3 (índice 2)
+        // Then — advanced to song3
         assertEquals(3L, vm.state.value.song?.trackId)
     }
 
     @Test
-    fun `onCompletion com loop - rebobina para o início e continua tocando`() = runTest {
+    fun `onCompletion with loop enabled seeks to 0 and keeps playing`() = runTest {
         // Given
         val songs = listOf(aSong(trackId = 1L), aSong(trackId = 2L, previewUrl = "https://p.m4a"))
         playerController.selectSong(songs, songs[0].trackId)
@@ -309,8 +289,8 @@ class PlayerViewModelTest {
     // region onError
 
     @Test
-    fun `simulateError - define estado de erro no player`() = runTest {
-        // Given
+    fun `simulateError sets error state in player`() = runTest {
+        // Given — player initialized
         val songs = listOf(aSong(trackId = 1L), aSong(trackId = 2L, previewUrl = "https://p.m4a"))
         playerController.selectSong(songs, songs[0].trackId)
         val vm = buildViewModel()
@@ -331,16 +311,15 @@ class PlayerViewModelTest {
     // region onViewAlbum
 
     @Test
-    fun `onViewAlbum - emite NavigateToAlbum com collectionId da song atual`() = runTest {
-        // Given — song com collectionId conhecido no state
-        val song = aSong(trackId = 1L, collectionId = 55L, previewUrl = null)
-        playerController.selectSong(listOf(song), song.trackId)
-        val vm = buildViewModelWithNullPreviewSong() // safe: sem criar player real
+    fun `onViewAlbum emits NavigateToAlbum with collectionId of the current song`() = runTest {
+        // Given — song with null previewUrl so init does not create a real player
+        val vm = buildViewModelWithNullPreviewSong(collectionId = 55L)
 
         // When / Then
         vm.navigationEvents.test {
             vm.onViewAlbum()
             advanceUntilIdle()
+
             val event = awaitItem()
             assertTrue(event is PlayerNavigationEvent.NavigateToAlbum)
             assertEquals(55L, (event as PlayerNavigationEvent.NavigateToAlbum).collectionId)
@@ -352,8 +331,8 @@ class PlayerViewModelTest {
     // region onCleared
 
     @Test
-    fun `onCleared - libera o player de áudio`() = runTest {
-        // Given
+    fun `onCleared releases the audio player`() = runTest {
+        // Given — player initialized via onNext
         val songs = listOf(aSong(trackId = 1L), aSong(trackId = 2L, previewUrl = "https://p.m4a"))
         playerController.selectSong(songs, songs[0].trackId)
         val vm = buildViewModel()

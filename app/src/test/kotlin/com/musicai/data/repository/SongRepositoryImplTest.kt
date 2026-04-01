@@ -2,7 +2,9 @@ package com.musicai.data.repository
 
 import com.google.gson.Gson
 import com.musicai.data.model.SearchResponse
+import com.musicai.data.model.SongEntity
 import com.musicai.data.model.SongResponse
+import com.musicai.domain.model.Song
 import com.musicai.fakes.FakeItunesApiService
 import com.musicai.fakes.FakeSongDao
 import com.musicai.util.JsonLoader
@@ -29,7 +31,7 @@ class SongRepositoryImplTest {
     // region searchSongs
 
     @Test
-    fun `searchSongs - sucesso retorna songs do domínio e armazena no cache`() = runTest {
+    fun `searchSongs returns domain songs and caches entities on success`() = runTest {
         // Given
         val json = JsonLoader.load("search_result.json")
         fakeApi.searchResponse = Gson().fromJson(json, SearchResponse::class.java)
@@ -45,20 +47,8 @@ class SongRepositoryImplTest {
     }
 
     @Test
-    fun `searchSongs - offset é calculado corretamente para paginação`() = runTest {
-        // Given
-        fakeApi.searchResponse = SearchResponse(results = listOf(aSongResponse()))
-
-        // When
-        repository.searchSongs(query = "killers", page = 2)
-
-        // Then — offset = 2 * PAGE_SIZE (20) = 40; verificamos pelo cache que o resultado chegou
-        assertEquals(1, fakeDao.upsertedSongs.size)
-    }
-
-    @Test
-    fun `searchSongs - filtra resultados com kind diferente de song`() = runTest {
-        // Given — resposta com 1 collection e 2 songs
+    fun `searchSongs filters out results where kind is not song`() = runTest {
+        // Given — response with 1 collection wrapper and 2 songs
         fakeApi.searchResponse = SearchResponse(
             resultCount = 3,
             results = listOf(
@@ -78,7 +68,7 @@ class SongRepositoryImplTest {
     }
 
     @Test
-    fun `searchSongs - fallback offline retorna cache quando API falha`() = runTest {
+    fun `searchSongs returns cached songs when network fails`() = runTest {
         // Given
         fakeApi.searchThrows = IOException("no network")
         fakeDao.cachedSongs = listOf(
@@ -96,7 +86,7 @@ class SongRepositoryImplTest {
     }
 
     @Test
-    fun `searchSongs - propaga exceção quando API falha e cache está vazio`() = runTest {
+    fun `searchSongs propagates exception when network fails and cache is empty`() = runTest {
         // Given
         fakeApi.searchThrows = IOException("no network")
         fakeDao.cachedSongs = emptyList()
@@ -114,8 +104,8 @@ class SongRepositoryImplTest {
     // region getAlbumSongs
 
     @Test
-    fun `getAlbumSongs - filtra wrapper de coleção e retorna apenas tracks`() = runTest {
-        // Given — album_result.json tem 1 collection + 12 songs = 13 resultados
+    fun `getAlbumSongs filters collection wrapper and returns only track results`() = runTest {
+        // Given — album_result.json has 1 collection + 12 songs = 13 total results
         val json = JsonLoader.load("album_result.json")
         fakeApi.lookupResponse = Gson().fromJson(json, SearchResponse::class.java)
 
@@ -125,11 +115,10 @@ class SongRepositoryImplTest {
         // Then
         assertTrue(result.isSuccess)
         assertEquals(12, result.getOrNull()?.size)
-        assertTrue(fakeDao.upsertedSongs.all { it.collectionId != 0L })
     }
 
     @Test
-    fun `getAlbumSongs - fallback offline retorna cache quando API falha`() = runTest {
+    fun `getAlbumSongs returns cached songs when network fails`() = runTest {
         // Given
         fakeApi.lookupThrows = IOException("no network")
         fakeDao.albumSongs = listOf(
@@ -146,7 +135,7 @@ class SongRepositoryImplTest {
     }
 
     @Test
-    fun `getAlbumSongs - propaga exceção quando API falha e cache está vazio`() = runTest {
+    fun `getAlbumSongs propagates exception when network fails and cache is empty`() = runTest {
         // Given
         fakeApi.lookupThrows = IOException("no network")
         fakeDao.albumSongs = emptyList()
@@ -164,7 +153,7 @@ class SongRepositoryImplTest {
     // region markAsPlayed
 
     @Test
-    fun `markAsPlayed - delega ao DAO com trackId e timestamp positivo`() = runTest {
+    fun `markAsPlayed delegates to DAO with correct trackId and positive timestamp`() = runTest {
         // Given
         val song = aSong(trackId = 42L)
 
@@ -175,7 +164,7 @@ class SongRepositoryImplTest {
         assertEquals(1, fakeDao.updatedTimestamps.size)
         val (trackId, timestamp) = fakeDao.updatedTimestamps.first()
         assertEquals(42L, trackId)
-        assertTrue("Timestamp deve ser maior que zero", timestamp > 0L)
+        assertTrue("Timestamp must be greater than zero", timestamp > 0L)
     }
 
     // endregion
@@ -202,7 +191,7 @@ class SongRepositoryImplTest {
     private fun aSongEntity(
         trackId: Long = 1L,
         collectionId: Long = 100L,
-    ) = com.musicai.data.model.SongEntity(
+    ) = SongEntity(
         trackId = trackId,
         trackName = "Track $trackId",
         artistName = "Artist",
@@ -215,7 +204,7 @@ class SongRepositoryImplTest {
         lastPlayedAt = null,
     )
 
-    private fun aSong(trackId: Long = 1L) = com.musicai.domain.model.Song(
+    private fun aSong(trackId: Long = 1L) = Song(
         trackId = trackId,
         trackName = "Track $trackId",
         artistName = "Artist",

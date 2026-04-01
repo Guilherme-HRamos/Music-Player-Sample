@@ -11,7 +11,7 @@ class SongResponseMapperTest {
     // region toDomain
 
     @Test
-    fun `toDomain - artworkUrl100 é mapeado para artworkUrl no domínio`() {
+    fun `toDomain maps artworkUrl100 to artworkUrl in domain model`() {
         // Given
         val response = aSongResponse(artworkUrl100 = "https://example.com/100x100.jpg")
 
@@ -23,7 +23,7 @@ class SongResponseMapperTest {
     }
 
     @Test
-    fun `toDomain - todos os campos identificadores são preservados`() {
+    fun `toDomain maps all identifier fields correctly`() {
         // Given
         val response = aSongResponse(
             trackId = 42L,
@@ -45,7 +45,7 @@ class SongResponseMapperTest {
     }
 
     @Test
-    fun `toDomain - previewUrl null é preservado como null`() {
+    fun `toDomain preserves null previewUrl`() {
         // Given
         val response = aSongResponse(previewUrl = null)
 
@@ -57,7 +57,7 @@ class SongResponseMapperTest {
     }
 
     @Test
-    fun `toDomain - trackTimeMillis null é preservado como null`() {
+    fun `toDomain preserves null trackTimeMillis`() {
         // Given
         val response = aSongResponse(trackTimeMillis = null)
 
@@ -73,7 +73,7 @@ class SongResponseMapperTest {
     // region toEntity
 
     @Test
-    fun `toEntity - query de busca é armazenada na entity`() {
+    fun `toEntity stores the search query`() {
         // Given
         val response = aSongResponse()
 
@@ -85,7 +85,7 @@ class SongResponseMapperTest {
     }
 
     @Test
-    fun `toEntity - query vazia por padrão quando não informada`() {
+    fun `toEntity defaults to empty string when query is not provided`() {
         // Given
         val response = aSongResponse()
 
@@ -97,7 +97,7 @@ class SongResponseMapperTest {
     }
 
     @Test
-    fun `toEntity - lastPlayedAt null por padrão`() {
+    fun `toEntity defaults lastPlayedAt to null`() {
         // Given
         val response = aSongResponse()
 
@@ -109,7 +109,7 @@ class SongResponseMapperTest {
     }
 
     @Test
-    fun `toEntity - artworkUrl100 mapeado para artworkUrl na entity`() {
+    fun `toEntity maps artworkUrl100 to artworkUrl`() {
         // Given
         val response = aSongResponse(artworkUrl100 = "https://example.com/art.jpg")
 
@@ -125,7 +125,7 @@ class SongResponseMapperTest {
     // region JSON fixtures
 
     @Test
-    fun `toDomain com fixture search_result - primeiro resultado tem dados corretos`() {
+    fun `toDomain with search_result fixture returns correct data for first result`() {
         // Given
         val json = JsonLoader.load("search_result.json")
         val response = Gson().fromJson(json, SearchResponse::class.java)
@@ -140,7 +140,7 @@ class SongResponseMapperTest {
     }
 
     @Test
-    fun `toEntity com fixture search_result - searchQuery é preservada`() {
+    fun `toEntity with search_result fixture preserves searchQuery`() {
         // Given
         val json = JsonLoader.load("search_result.json")
         val response = Gson().fromJson(json, SearchResponse::class.java)
@@ -151,7 +151,10 @@ class SongResponseMapperTest {
         // Then
         assertEquals(1440891180L, entity.trackId)
         assertEquals("killers", entity.searchQuery)
-        assertEquals("https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/11/64/9c/11649c80-2066-dba8-77a9-df7eecae26c1/17UM1IM06937.rgb.jpg/100x100bb.jpg", entity.artworkUrl)
+        assertEquals(
+            "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/11/64/9c/11649c80-2066-dba8-77a9-df7eecae26c1/17UM1IM06937.rgb.jpg/100x100bb.jpg",
+            entity.artworkUrl,
+        )
     }
 
     // endregion
