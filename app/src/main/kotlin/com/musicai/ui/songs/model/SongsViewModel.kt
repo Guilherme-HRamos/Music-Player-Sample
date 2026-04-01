@@ -93,12 +93,13 @@ class SongsViewModelImpl @Inject constructor(
         _state.update { it.copy(isLoading = true, songs = emptyList(), currentPage = 0, hasMore = true, error = null) }
         songsSourceJob = viewModelScope.launch {
             searchSongs(query, page = 0)
-                .onSuccess { songs ->
+                .onSuccess { result ->
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            songs = songs.distinctBy { song -> song.trackId },
-                            hasMore = songs.size >= 20,
+                            songs = result.songs,
+                            currentPage = result.currentPage,
+                            hasMore = result.hasMore,
                         )
                     }
                 }
@@ -123,23 +124,14 @@ class SongsViewModelImpl @Inject constructor(
         _state.update { it.copy(isLoadingMore = true) }
 
         viewModelScope.launch {
-            searchSongs(current.query, page = nextPage)
-                .onSuccess { newSongs ->
+            searchSongs(current.query, page = nextPage, previousResults = current.songs)
+                .onSuccess { result ->
                     _state.update { state ->
-                        // Filter out songs that are already in the list
-                        val distinctNewSongs = newSongs.filter { newSong ->
-                            state.songs.none { it.trackId == newSong.trackId }
-                        }
-
-                        // If the API returned items but none are new, it's likely repeating results.
-                        // Or if the API returned an empty list, we reached the end.
-                        val hasMoreData = newSongs.isNotEmpty() && distinctNewSongs.isNotEmpty()
-
                         state.copy(
                             isLoadingMore = false,
-                            songs = state.songs + distinctNewSongs,
-                            currentPage = if (distinctNewSongs.isNotEmpty()) nextPage else state.currentPage,
-                            hasMore = if (hasMoreData) newSongs.size >= 20 else false,
+                            songs = state.songs + result.songs,
+                            currentPage = result.currentPage,
+                            hasMore = result.hasMore,
                         )
                     }
                 }
@@ -188,13 +180,13 @@ class SongsViewModelImpl @Inject constructor(
         _state.update { it.copy(isRefreshing = true, error = null) }
         songsSourceJob = viewModelScope.launch {
             searchSongs(query, page = 0)
-                .onSuccess { songs ->
+                .onSuccess { result ->
                     _state.update {
                         it.copy(
                             isRefreshing = false,
-                            songs = songs.distinctBy { song -> song.trackId },
-                            currentPage = 0,
-                            hasMore = songs.size >= 20,
+                            songs = result.songs,
+                            currentPage = result.currentPage,
+                            hasMore = result.hasMore,
                         )
                     }
                 }
