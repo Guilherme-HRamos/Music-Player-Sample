@@ -5,9 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.musicai.domain.model.Song
 import com.musicai.domain.usecase.GetRecentSongsUseCase
 import com.musicai.domain.usecase.SearchSongsUseCase
+import com.musicai.plugin.utils.logWip
 import com.musicai.ui.shared.PlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -49,16 +51,17 @@ class SongsViewModelImpl @Inject constructor(
     private val _navigationEvents = MutableSharedFlow<SongsNavigationEvent>()
     override val navigationEvents = _navigationEvents.asSharedFlow()
 
-    private var searchJob: Job? = null
+    private var songsSourceJob: Job? = null
 
     init {
         observeRecentSongs()
     }
-
     private fun observeRecentSongs() {
-        getRecentSongs()
+        songsSourceJob?.cancel()
+        songsSourceJob = getRecentSongs()
             .onEach { recent ->
                 if (!_state.value.isSearchActive) {
+                    logWip("SongsViewModel -> recent: $recent")
                     _state.update { it.copy(songs = recent) }
                 }
             }
@@ -70,11 +73,12 @@ class SongsViewModelImpl @Inject constructor(
     }
 
     override fun onToggleSearch() {
+        songsSourceJob?.cancel()
         _state.update { current ->
             if (current.isSearchActive) {
                 current.copy(isSearchActive = false, query = "", songs = emptyList())
             } else {
-                current.copy(isSearchActive = true)
+                current.copy(isSearchActive = true, songs = emptyList())
             }
         }
         if (!_state.value.isSearchActive) {
@@ -85,9 +89,9 @@ class SongsViewModelImpl @Inject constructor(
     override fun onSearch() {
         val query = _state.value.query.trim()
         if (query.isBlank()) return
-        searchJob?.cancel()
+        songsSourceJob?.cancel()
         _state.update { it.copy(isLoading = true, songs = emptyList(), currentPage = 0, hasMore = true, error = null) }
-        searchJob = viewModelScope.launch {
+        songsSourceJob = viewModelScope.launch {
             searchSongs(query, page = 0)
                 .onSuccess { songs ->
                     _state.update {
@@ -160,17 +164,20 @@ class SongsViewModelImpl @Inject constructor(
 
     override fun onRefresh() {
         val query = _state.value.query.trim()
+        songsSourceJob?.cancel()
+
         if (query.isBlank()) {
-            // Recent songs are already reactive; just signal refresh completion
             _state.update { it.copy(isRefreshing = true) }
-            viewModelScope.launch {
-                kotlinx.coroutines.delay(500)
+            songsSourceJob = viewModelScope.launch {
+                delay(500)
                 _state.update { it.copy(isRefreshing = false) }
+                observeRecentSongs()
             }
             return
         }
+
         _state.update { it.copy(isRefreshing = true, error = null) }
-        viewModelScope.launch {
+        songsSourceJob = viewModelScope.launch {
             searchSongs(query, page = 0)
                 .onSuccess { songs ->
                     _state.update {

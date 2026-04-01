@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.musicai.domain.model.Song
 import com.musicai.domain.usecase.SaveRecentSongUseCase
 import com.musicai.plugin.audioPlayer.AudioPlayer
-import com.musicai.plugin.audioPlayer.MediaAudioPlayer
+import com.musicai.plugin.audioPlayer.AudioPlayerFactory
 import com.musicai.ui.shared.PlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -36,9 +36,8 @@ interface PlayerViewModel {
 class PlayerViewModelImpl @Inject constructor(
     private val playerController: PlayerController,
     private val saveRecentSong: SaveRecentSongUseCase,
+    private val audioPlayerFactory: AudioPlayerFactory,
 ) : ViewModel(), PlayerViewModel {
-
-    internal var audioPlayerFactory: () -> AudioPlayer = { MediaAudioPlayer() }
 
     private val _state = MutableStateFlow(PlayerState())
     override val state = _state.asStateFlow()
@@ -73,7 +72,7 @@ class PlayerViewModelImpl @Inject constructor(
         _state.update { it.copy(isPreparing = true, error = null) }
 
         audioPlayer?.release()
-        audioPlayer = audioPlayerFactory().also { player ->
+        audioPlayer = audioPlayerFactory.create().also { player ->
             player.setDataSource(url)
             player.setOnPreparedListener { mp ->
                 _state.update {
@@ -89,7 +88,6 @@ class PlayerViewModelImpl @Inject constructor(
                     it.seekTo(0)
                     it.start()
                     _state.update { s -> s.copy(currentPositionMs = 0L) }
-                    startProgressTracking()
                 } else {
                     stopProgressTracking()
                     _state.update { s -> s.copy(isPlaying = false, currentPositionMs = 0L) }
@@ -155,11 +153,13 @@ class PlayerViewModelImpl @Inject constructor(
         stopProgressTracking()
         progressJob = viewModelScope.launch {
             while (true) {
-                delay(500)
                 val mp = audioPlayer ?: break
+
                 if (mp.isPlaying) {
                     _state.update { it.copy(currentPositionMs = mp.currentPosition.toLong()) }
                 }
+
+                delay(500)
             }
         }
     }
