@@ -33,9 +33,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.musicai.R
 import com.musicai.domain.model.Song
+import com.musicai.plugin.utils.DurationUtils
 import com.musicai.ui.player.model.PlayerNavigationEvent
 import com.musicai.ui.player.model.PlayerState
 import com.musicai.ui.player.model.PlayerViewModel
@@ -57,7 +55,6 @@ import com.musicai.ui.theme.ColorSheetBackground
 import com.musicai.ui.theme.MusicAITheme
 import com.musicai.ui.theme.displayNormal
 import com.musicai.ui.theme.labelMediumNormal
-import com.musicai.plugin.utils.DurationUtils
 
 @Composable
 fun PlayerScreen(
@@ -83,6 +80,8 @@ fun PlayerScreen(
         onNext = viewModel::onNext,
         onToggleLoop = viewModel::onToggleLoop,
         onViewAlbum = viewModel::onViewAlbum,
+        onModalDismissed = viewModel::onModalDismissed,
+        onMoreClick = viewModel::onMoreClick,
     )
 }
 
@@ -96,9 +95,9 @@ private fun PlayerContent(
     onNext: () -> Unit,
     onToggleLoop: () -> Unit,
     onViewAlbum: () -> Unit,
+    onModalDismissed: () -> Unit,
+    onMoreClick: () -> Unit
 ) {
-
-    var shouldDisplayModal by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -107,7 +106,8 @@ private fun PlayerContent(
             .navigationBarsPadding()
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .padding(top = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
@@ -134,9 +134,8 @@ private fun PlayerContent(
             IconButton(
                 modifier = Modifier
                     .padding(start = 8.dp),
-                onClick = {
-                    shouldDisplayModal = true
-                }) {
+                onClick = onMoreClick
+            ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = "More options",
@@ -321,11 +320,11 @@ private fun PlayerContent(
                 )
             }
 
-            if (shouldDisplayModal && state.song != null) {
+            if (state.shouldDisplayModal && state.song != null) {
                 MoreOptionsSheet(
                     song = state.song,
-                    onDismiss = { shouldDisplayModal = false },
-                    onViewAlbum = { onViewAlbum() },
+                    onDismiss = onModalDismissed,
+                    onViewAlbum = onViewAlbum,
                 )
             }
         }
@@ -365,6 +364,8 @@ fun PlayerScreenPreview() {
                 onNext = {},
                 onToggleLoop = {},
                 onViewAlbum = {},
+                onModalDismissed = {},
+                onMoreClick = {}
             )
         }
     }

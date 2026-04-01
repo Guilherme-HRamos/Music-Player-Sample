@@ -12,4 +12,5 @@ data class PlayerState(
     val hasPrevious: Boolean = false,
     val error: String? = null,
     val loopEnabled: Boolean = false,
+    val shouldDisplayModal: Boolean = false
 )

@@ -30,6 +30,8 @@ interface PlayerViewModel {
     fun onSeek(positionMs: Long)
     fun onToggleLoop()
     fun onViewAlbum()
+    fun onModalDismissed()
+    fun onMoreClick()
 }
 
 @HiltViewModel
@@ -56,6 +58,7 @@ class PlayerViewModelImpl @Inject constructor(
                     song = song,
                     hasNext = playerController.hasNext,
                     hasPrevious = playerController.hasPrevious,
+                    shouldDisplayModal = false
                 )
             }
             initializePlayer(song)
@@ -174,11 +177,20 @@ class PlayerViewModelImpl @Inject constructor(
     }
 
     override fun onViewAlbum() {
+        onModalDismissed()
         viewModelScope.launch {
             _state.value.song?.run {
                 _navigationEvents.emit(PlayerNavigationEvent.NavigateToAlbum(collectionId))
             }
         }
+    }
+
+    override fun onModalDismissed() {
+        _state.update { it.copy(shouldDisplayModal = false) }
+    }
+
+    override fun onMoreClick() {
+        _state.update { it.copy(shouldDisplayModal = true) }
     }
 
     override fun onCleared() {
