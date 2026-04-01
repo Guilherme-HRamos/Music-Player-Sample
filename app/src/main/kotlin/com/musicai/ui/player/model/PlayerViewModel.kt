@@ -1,13 +1,12 @@
 package com.musicai.ui.player.model
 
-import android.media.AudioAttributes
-import android.media.MediaPlayer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.musicai.domain.model.Song
 import com.musicai.domain.usecase.SaveRecentSongUseCase
+import com.musicai.plugin.audioPlayer.AudioPlayer
+import com.musicai.plugin.audioPlayer.MediaAudioPlayer
 import com.musicai.ui.shared.PlayerController
-import com.musicai.ui.songs.model.SongsNavigationEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -39,13 +38,15 @@ class PlayerViewModelImpl @Inject constructor(
     private val saveRecentSong: SaveRecentSongUseCase,
 ) : ViewModel(), PlayerViewModel {
 
+    internal var audioPlayerFactory: () -> AudioPlayer = { MediaAudioPlayer() }
+
     private val _state = MutableStateFlow(PlayerState())
     override val state = _state.asStateFlow()
 
     private val _navigationEvents = MutableSharedFlow<PlayerNavigationEvent>()
     override val navigationEvents = _navigationEvents.asSharedFlow()
 
-    private var mediaPlayer: MediaPlayer? = null
+    private var audioPlayer: AudioPlayer? = null
     private var progressJob: Job? = null
 
     init {
@@ -71,17 +72,10 @@ class PlayerViewModelImpl @Inject constructor(
 
         _state.update { it.copy(isPreparing = true, error = null) }
 
-        mediaPlayer?.release()
-        mediaPlayer = MediaPlayer().apply {
-            setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .build(),
-            )
-            setDataSource(url)
-            prepareAsync()
-            setOnPreparedListener { mp ->
+        audioPlayer?.release()
+        audioPlayer = audioPlayerFactory().also { player ->
+            player.setDataSource(url)
+            player.setOnPreparedListener { mp ->
                 _state.update {
                     it.copy(durationMs = mp.duration.toLong(), isPreparing = false)
                 }
@@ -90,29 +84,30 @@ class PlayerViewModelImpl @Inject constructor(
                 startProgressTracking()
                 viewModelScope.launch { saveRecentSong(song) }
             }
-            setOnCompletionListener { mp ->
+            player.setOnCompletionListener {
                 if (_state.value.loopEnabled) {
-                    mp.seekTo(0)
-                    mp.start()
-                    _state.update { it.copy(currentPositionMs = 0L) }
+                    it.seekTo(0)
+                    it.start()
+                    _state.update { s -> s.copy(currentPositionMs = 0L) }
                     startProgressTracking()
                 } else {
                     stopProgressTracking()
-                    _state.update { it.copy(isPlaying = false, currentPositionMs = 0L) }
+                    _state.update { s -> s.copy(isPlaying = false, currentPositionMs = 0L) }
                     onNext()
                 }
             }
-            setOnErrorListener { _, _, _ ->
+            player.setOnErrorListener { _, _, _ ->
                 _state.update {
                     it.copy(isPreparing = false, error = "Could not play this track")
                 }
                 true
             }
+            player.prepareAsync()
         }
     }
 
     override fun onPlayPause() {
-        val mp = mediaPlayer ?: return
+        val mp = audioPlayer ?: return
         if (mp.isPlaying) {
             mp.pause()
             stopProgressTracking()
@@ -125,7 +120,7 @@ class PlayerViewModelImpl @Inject constructor(
     }
 
     override fun onSeek(positionMs: Long) {
-        mediaPlayer?.seekTo(positionMs.toInt())
+        audioPlayer?.seekTo(positionMs.toInt())
         _state.update { it.copy(currentPositionMs = positionMs) }
     }
 
@@ -141,8 +136,8 @@ class PlayerViewModelImpl @Inject constructor(
 
     private fun switchSong(song: Song) {
         stopProgressTracking()
-        mediaPlayer?.release()
-        mediaPlayer = null
+        audioPlayer?.release()
+        audioPlayer = null
         _state.update {
             it.copy(
                 song = song,
@@ -161,7 +156,7 @@ class PlayerViewModelImpl @Inject constructor(
         progressJob = viewModelScope.launch {
             while (true) {
                 delay(500)
-                val mp = mediaPlayer ?: break
+                val mp = audioPlayer ?: break
                 if (mp.isPlaying) {
                     _state.update { it.copy(currentPositionMs = mp.currentPosition.toLong()) }
                 }
@@ -189,7 +184,7 @@ class PlayerViewModelImpl @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         stopProgressTracking()
-        mediaPlayer?.release()
-        mediaPlayer = null
+        audioPlayer?.release()
+        audioPlayer = null
     }
 }

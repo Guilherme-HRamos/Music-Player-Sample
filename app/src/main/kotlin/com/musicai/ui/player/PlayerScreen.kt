@@ -52,13 +52,12 @@ import com.musicai.ui.player.model.PlayerNavigationEvent
 import com.musicai.ui.player.model.PlayerState
 import com.musicai.ui.player.model.PlayerViewModel
 import com.musicai.ui.songs.MoreOptionsSheet
-import com.musicai.ui.songs.model.SongsNavigationEvent
 import com.musicai.ui.theme.ColorBackground
 import com.musicai.ui.theme.ColorSheetBackground
 import com.musicai.ui.theme.MusicAITheme
 import com.musicai.ui.theme.displayNormal
 import com.musicai.ui.theme.labelMediumNormal
-import com.musicai.utils.DurationUtils
+import com.musicai.plugin.utils.DurationUtils
 
 @Composable
 fun PlayerScreen(

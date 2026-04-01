@@ -1,4 +1,4 @@
-package com.musicai.utils
+package com.musicai.plugin.utils
 
 import android.util.Log
 

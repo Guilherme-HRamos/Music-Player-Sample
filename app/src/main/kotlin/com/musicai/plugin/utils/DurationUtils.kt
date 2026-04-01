@@ -1,4 +1,4 @@
-package com.musicai.utils
+package com.musicai.plugin.utils
 
 object DurationUtils {
 
