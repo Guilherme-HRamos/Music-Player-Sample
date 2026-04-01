@@ -26,7 +26,7 @@ data class SongResponse(
         trackTimeMillis = trackTimeMillis,
     )
 
-    fun toEntity(query: String = "", lastPlayedAt: Long? = null) = SongEntity(
+    fun toEntity(query: String = "") = SongEntity(
         trackId = trackId,
         trackName = trackName,
         artistName = artistName,
@@ -36,6 +36,5 @@ data class SongResponse(
         previewUrl = previewUrl,
         trackTimeMillis = trackTimeMillis,
         searchQuery = query,
-        lastPlayedAt = lastPlayedAt,
     )
 }

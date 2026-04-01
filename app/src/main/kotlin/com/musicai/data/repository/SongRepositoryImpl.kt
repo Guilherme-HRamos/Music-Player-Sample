@@ -1,6 +1,8 @@
 package com.musicai.data.repository
 
+import com.musicai.data.api.local.RecentSongDao
 import com.musicai.data.api.local.SongDao
+import com.musicai.data.model.RecentSongEntity
 import com.musicai.data.network.ItunesApiService
 import com.musicai.domain.model.Song
 import com.musicai.domain.repository.SongRepository
@@ -11,6 +13,7 @@ import javax.inject.Inject
 class SongRepositoryImpl @Inject constructor(
     private val api: ItunesApiService,
     private val dao: SongDao,
+    private val recentDao: RecentSongDao,
 ) : SongRepository {
 
     override suspend fun searchSongs(query: String, page: Int): Result<List<Song>> = runCatching {
@@ -27,7 +30,7 @@ class SongRepositoryImpl @Inject constructor(
     }
 
     override fun getRecentSongs(limit: Int): Flow<List<Song>> =
-            dao.getRecentlyPlayed(limit).map { entities -> entities.map { it.toDomain() } }
+            recentDao.getRecentlyPlayed(limit).map { entities -> entities.map { it.toDomain() } }
 
     override suspend fun getAlbumSongs(collectionId: Long): Result<List<Song>> = runCatching {
         val response = api.lookupAlbum(collectionId)
@@ -42,9 +45,18 @@ class SongRepositoryImpl @Inject constructor(
     }
 
     override suspend fun markAsPlayed(song: Song) {
-        dao.updateLastPlayed(
-            trackId = song.trackId,
-            timestamp = System.currentTimeMillis(),
+        recentDao.upsert(
+            RecentSongEntity(
+                trackId = song.trackId,
+                trackName = song.trackName,
+                artistName = song.artistName,
+                collectionName = song.collectionName,
+                collectionId = song.collectionId,
+                artworkUrl = song.artworkUrl,
+                previewUrl = song.previewUrl,
+                trackTimeMillis = song.trackTimeMillis,
+                playedAt = System.currentTimeMillis(),
+            )
         )
     }
 }

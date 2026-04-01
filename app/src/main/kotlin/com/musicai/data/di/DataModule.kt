@@ -3,6 +3,7 @@ package com.musicai.data.di
 import android.content.Context
 import androidx.room.Room
 import com.musicai.data.api.local.MusicDatabase
+import com.musicai.data.api.local.RecentSongDao
 import com.musicai.data.api.local.SongDao
 import com.musicai.data.network.ItunesApiService
 import com.musicai.data.repository.SongRepositoryImpl
@@ -55,10 +56,16 @@ abstract class DataModule {
         @Provides
         @Singleton
         fun provideMusicDatabase(@ApplicationContext context: Context): MusicDatabase =
-                Room.databaseBuilder(context, MusicDatabase::class.java, "music.db").build()
+                Room.databaseBuilder(context, MusicDatabase::class.java, "music.db")
+                    .fallbackToDestructiveMigration()
+                    .build()
 
         @Provides
         @Singleton
         fun provideSongDao(db: MusicDatabase): SongDao = db.songDao()
+
+        @Provides
+        @Singleton
+        fun provideRecentSongDao(db: MusicDatabase): RecentSongDao = db.recentSongDao()
     }
 }

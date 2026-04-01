@@ -4,8 +4,8 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.musicai.domain.model.Song
 
-@Entity(tableName = "songs")
-data class SongEntity(
+@Entity(tableName = "recent_songs")
+data class RecentSongEntity(
     @PrimaryKey val trackId: Long,
     val trackName: String,
     val artistName: String,
@@ -14,7 +14,7 @@ data class SongEntity(
     val artworkUrl: String,
     val previewUrl: String?,
     val trackTimeMillis: Long?,
-    val searchQuery: String,
+    val playedAt: Long,
 ) {
     fun toDomain() = Song(
         trackId = trackId,
