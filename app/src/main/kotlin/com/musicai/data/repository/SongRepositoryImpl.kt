@@ -3,7 +3,7 @@ package com.musicai.data.repository
 import com.musicai.data.api.local.RecentSongDao
 import com.musicai.data.api.local.SongDao
 import com.musicai.data.model.RecentSongEntity
-import com.musicai.data.network.ItunesApiService
+import com.musicai.data.api.remote.ItunesApiService
 import com.musicai.domain.model.Song
 import com.musicai.domain.repository.SongRepository
 import kotlinx.coroutines.flow.Flow
@@ -23,10 +23,11 @@ class SongRepositoryImpl @Inject constructor(
         dao.upsertAll(songs.map { it.toEntity(query = query) })
         songs.map { it.toDomain() }
     }.recoverCatching {
-        // Offline fallback: return cached results for this query
-        dao.searchCached(query).map { entity -> entity.toDomain() }.also { cached ->
-            if (cached.isEmpty()) throw it
-        }
+        // Offline fallback: return cached results for this query (respecting pagination)
+        val offset = page * ItunesApiService.PAGE_SIZE
+        dao.searchCached(query, limit = ItunesApiService.PAGE_SIZE, offset = offset)
+            .map { entity -> entity.toDomain() }
+            .also { cached -> if (cached.isEmpty()) throw it }
     }
 
     override fun getRecentSongs(limit: Int): Flow<List<Song>> =

@@ -1,4 +1,4 @@
-package com.musicai.data.network
+package com.musicai.data.api.remote
 
 import com.musicai.data.model.SearchResponse
 import retrofit2.http.GET
@@ -13,6 +13,7 @@ interface ItunesApiService {
         @Query("offset") offset: Int = 0,
         @Query("entity") entity: String = "song",
         @Query("media") media: String = "music",
+        @Query("country") country: String = "US",
     ): SearchResponse
 
     @GET("lookup")

@@ -11,8 +11,8 @@ interface SongDao {
     @Upsert
     suspend fun upsertAll(songs: List<SongEntity>)
 
-    @Query("SELECT * FROM songs WHERE searchQuery = :query ORDER BY trackName ASC")
-    suspend fun searchCached(query: String): List<SongEntity>
+    @Query("SELECT * FROM songs WHERE searchQuery = :query ORDER BY trackName ASC LIMIT :limit OFFSET :offset")
+    suspend fun searchCached(query: String, limit: Int, offset: Int): List<SongEntity>
 
     @Query("SELECT * FROM songs WHERE collectionId = :collectionId ORDER BY trackName ASC")
     suspend fun getAlbumSongs(collectionId: Long): List<SongEntity>

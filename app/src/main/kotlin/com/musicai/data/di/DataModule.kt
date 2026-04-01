@@ -5,7 +5,7 @@ import androidx.room.Room
 import com.musicai.data.api.local.MusicDatabase
 import com.musicai.data.api.local.RecentSongDao
 import com.musicai.data.api.local.SongDao
-import com.musicai.data.network.ItunesApiService
+import com.musicai.data.api.remote.ItunesApiService
 import com.musicai.data.repository.SongRepositoryImpl
 import com.musicai.domain.repository.SongRepository
 import dagger.Binds

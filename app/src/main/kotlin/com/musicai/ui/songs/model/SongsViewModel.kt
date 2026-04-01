@@ -97,7 +97,7 @@ class SongsViewModelImpl @Inject constructor(
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            songs = songs,
+                            songs = songs.distinctBy { song -> song.trackId },
                             hasMore = songs.size >= 20,
                         )
                     }
@@ -124,13 +124,22 @@ class SongsViewModelImpl @Inject constructor(
 
         viewModelScope.launch {
             searchSongs(current.query, page = nextPage)
-                .onSuccess { songs ->
-                    _state.update {
-                        it.copy(
+                .onSuccess { newSongs ->
+                    _state.update { state ->
+                        // Filter out songs that are already in the list
+                        val distinctNewSongs = newSongs.filter { newSong ->
+                            state.songs.none { it.trackId == newSong.trackId }
+                        }
+
+                        // If the API returned items but none are new, it's likely repeating results.
+                        // Or if the API returned an empty list, we reached the end.
+                        val hasMoreData = newSongs.isNotEmpty() && distinctNewSongs.isNotEmpty()
+
+                        state.copy(
                             isLoadingMore = false,
-                            songs = it.songs + songs,
-                            currentPage = nextPage,
-                            hasMore = songs.size >= 20,
+                            songs = state.songs + distinctNewSongs,
+                            currentPage = if (distinctNewSongs.isNotEmpty()) nextPage else state.currentPage,
+                            hasMore = if (hasMoreData) newSongs.size >= 20 else false,
                         )
                     }
                 }
@@ -183,7 +192,7 @@ class SongsViewModelImpl @Inject constructor(
                     _state.update {
                         it.copy(
                             isRefreshing = false,
-                            songs = songs,
+                            songs = songs.distinctBy { song -> song.trackId },
                             currentPage = 0,
                             hasMore = songs.size >= 20,
                         )
