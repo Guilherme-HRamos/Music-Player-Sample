@@ -47,6 +47,7 @@ import com.musicai.R
 import com.musicai.domain.model.Song
 import com.musicai.ui.shared.SongListItem
 import com.musicai.ui.shared.components.ContentStateWrapper
+import com.musicai.ui.shared.components.SongLoadingItem
 import com.musicai.ui.songs.model.SongsNavigationEvent
 import com.musicai.ui.songs.model.SongsState
 import com.musicai.ui.songs.model.SongsViewModel
@@ -164,6 +165,9 @@ private fun SongsContent(
                                 modifier = Modifier.padding(start = MusicTheme.component.horizontalDividerPadding),
                             )
                         }
+
+                        if (state.isLoadingMore)
+                            item { SongLoadingItem() }
                     }
                 }
             }
