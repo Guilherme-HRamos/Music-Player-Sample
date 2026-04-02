@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 interface AlbumViewModel {
     val state: StateFlow<AlbumState>
-    val navigationEvents: SharedFlow<AlbumNavigationEvent>
+    val messageEvents: SharedFlow<AlbumMessageEvent>
 
     fun onRetry()
 }
@@ -38,8 +38,8 @@ class AlbumViewModelImpl @Inject constructor(
     private val _state = MutableStateFlow(AlbumState(isLoading = true))
     override val state = _state.asStateFlow()
 
-    private val _navigationEvents = MutableSharedFlow<AlbumNavigationEvent>(replay = 1)
-    override val navigationEvents = _navigationEvents.asSharedFlow()
+    private val _messageEvents = MutableSharedFlow<AlbumMessageEvent>(replay = 1)
+    override val messageEvents = _messageEvents.asSharedFlow()
 
     init {
         loadAlbum()
@@ -49,7 +49,7 @@ class AlbumViewModelImpl @Inject constructor(
         if (!connectivityChecker.isInternetAvailable()) {
             logger.error("No internet connection while loading album (collectionId: $collectionId)")
             viewModelScope.launch {
-                _navigationEvents.emit(AlbumNavigationEvent.NoConnectionError)
+                _messageEvents.emit(AlbumMessageEvent.NoConnectionError)
                 _state.update { it.copy(isLoading = false, error = AlbumErrorState.NoConnection) }
             }
             return
@@ -65,7 +65,7 @@ class AlbumViewModelImpl @Inject constructor(
                 }
                 .onFailure { e ->
                     logger.error("Failed to load album: ${e.message}", e)
-                    _navigationEvents.emit(AlbumNavigationEvent.ShowError(R.string.album_load_error))
+                    _messageEvents.emit(AlbumMessageEvent.ShowError(R.string.album_load_error))
                     _state.update { it.copy(isLoading = false) }
                 }
         }

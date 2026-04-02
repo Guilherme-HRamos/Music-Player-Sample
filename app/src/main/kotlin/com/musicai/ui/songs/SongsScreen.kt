@@ -53,6 +53,7 @@ import com.musicai.ui.shared.components.AppErrorState
 import com.musicai.ui.shared.components.ContentStateWrapper
 import com.musicai.ui.shared.components.SongListItem
 import com.musicai.ui.shared.components.SongLoadingItem
+import com.musicai.ui.songs.model.SongsMessageEvent
 import com.musicai.ui.songs.model.SongsNavigationEvent
 import com.musicai.ui.songs.model.SongsState
 import com.musicai.ui.songs.model.SongsViewModel
@@ -75,11 +76,18 @@ fun SongsScreen(
             when (event) {
                 is SongsNavigationEvent.NavigateToPlayer -> onNavigateToPlayer(event.trackId)
                 is SongsNavigationEvent.NavigateToAlbum -> onNavigateToAlbum(event.collectionId)
-                is SongsNavigationEvent.NoConnectionError -> {
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.messageEvents.collect { event ->
+            when (event) {
+                is SongsMessageEvent.NoConnectionError -> {
                     Toast.makeText(context, R.string.no_internet_connection, Toast.LENGTH_SHORT).show()
                 }
 
-                is SongsNavigationEvent.GenericError -> {
+                is SongsMessageEvent.GenericError -> {
                     Toast.makeText(context, R.string.generic_error, Toast.LENGTH_SHORT).show()
                 }
             }

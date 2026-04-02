@@ -26,6 +26,7 @@ import javax.inject.Inject
 interface SongsViewModel {
     val state: StateFlow<SongsState>
     val navigationEvents: SharedFlow<SongsNavigationEvent>
+    val messageEvents: SharedFlow<SongsMessageEvent>
 
     fun onQueryChange(query: String)
     fun onToggleSearch()
@@ -51,8 +52,11 @@ class SongsViewModelImpl @Inject constructor(
     private val _state = MutableStateFlow(SongsState())
     override val state = _state.asStateFlow()
 
-    private val _navigationEvents = MutableSharedFlow<SongsNavigationEvent>(replay = 1)
+    private val _navigationEvents = MutableSharedFlow<SongsNavigationEvent>()
     override val navigationEvents = _navigationEvents.asSharedFlow()
+
+    private val _messageEvents = MutableSharedFlow<SongsMessageEvent>(replay = 1)
+    override val messageEvents = _messageEvents.asSharedFlow()
 
     private var songsSourceJob: Job? = null
     private var currentPage: Int = 0
@@ -87,7 +91,7 @@ class SongsViewModelImpl @Inject constructor(
             if (!connectivityChecker.isInternetAvailable()) {
                 logger.error("No internet connection while opening search mode")
                 viewModelScope.launch {
-                    _navigationEvents.emit(SongsNavigationEvent.NoConnectionError)
+                    _messageEvents.emit(SongsMessageEvent.NoConnectionError)
                 }
                 return
             }
@@ -107,7 +111,7 @@ class SongsViewModelImpl @Inject constructor(
         if (!connectivityChecker.isInternetAvailable()) {
             logger.error("No internet connection while performing search for query: '$query'")
             viewModelScope.launch {
-                _navigationEvents.emit(SongsNavigationEvent.NoConnectionError)
+                _messageEvents.emit(SongsMessageEvent.NoConnectionError)
             }
             return
         }
@@ -131,7 +135,7 @@ class SongsViewModelImpl @Inject constructor(
                 }
                 .onFailure { e ->
                     logger.error("Search failed for query '$query': ${e.message}", e)
-                    _navigationEvents.emit(SongsNavigationEvent.GenericError)
+                    _messageEvents.emit(SongsMessageEvent.GenericError)
                     _state.update {
                         it.copy(isLoading = false)
                     }
@@ -154,7 +158,7 @@ class SongsViewModelImpl @Inject constructor(
         if (!connectivityChecker.isInternetAvailable()) {
             logger.error("No internet connection while loading more results for query: '${current.query}'")
             viewModelScope.launch {
-                _navigationEvents.emit(SongsNavigationEvent.NoConnectionError)
+                _messageEvents.emit(SongsMessageEvent.NoConnectionError)
             }
             return
         }
@@ -179,7 +183,7 @@ class SongsViewModelImpl @Inject constructor(
                 }
                 .onFailure { e ->
                     logger.error("Load more failed for query '${current.query}' page $nextPage: ${e.message}", e)
-                    _navigationEvents.emit(SongsNavigationEvent.GenericError)
+                    _messageEvents.emit(SongsMessageEvent.GenericError)
                     _state.update {
                         it.copy(isRefreshing = false)
                     }
@@ -227,7 +231,7 @@ class SongsViewModelImpl @Inject constructor(
         if (!connectivityChecker.isInternetAvailable()) {
             logger.error("No internet connection while refreshing search results for query: '$query'")
             viewModelScope.launch {
-                _navigationEvents.emit(SongsNavigationEvent.NoConnectionError)
+                _messageEvents.emit(SongsMessageEvent.NoConnectionError)
             }
             _state.update {
                 it.copy(isRefreshing = false, error = SongsErrorState.NoConnection)
@@ -253,7 +257,7 @@ class SongsViewModelImpl @Inject constructor(
                 }
                 .onFailure { e ->
                     logger.error("Refresh failed for query '$query': ${e.message}", e)
-                    _navigationEvents.emit(SongsNavigationEvent.GenericError)
+                    _messageEvents.emit(SongsMessageEvent.GenericError)
                     _state.update {
                         it.copy(isRefreshing = false, error = SongsErrorState.RefreshFailed)
                     }

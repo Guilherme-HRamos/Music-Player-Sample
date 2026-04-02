@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import com.musicai.R
 import com.musicai.domain.model.Song
 import com.musicai.plugin.utils.DurationUtils
+import com.musicai.ui.player.model.PlayerMessagesEvent
 import com.musicai.ui.player.model.PlayerNavigationEvent
 import com.musicai.ui.player.model.PlayerState
 import com.musicai.ui.player.model.PlayerViewModel
@@ -71,10 +72,16 @@ fun PlayerScreen(
         viewModel.navigationEvents.collect { event ->
             when (event) {
                 is PlayerNavigationEvent.NavigateToAlbum -> onNavigateToAlbum(event.collectionId)
-                is PlayerNavigationEvent.NoConnectionError -> {
+            }
+        }
+    }
+    LaunchedEffect(Unit) {
+        viewModel.messageEvents.collect { event ->
+            when (event) {
+                is PlayerMessagesEvent.NoConnectionError -> {
                     Toast.makeText(context, R.string.no_internet_connection, Toast.LENGTH_SHORT).show()
                 }
-                is PlayerNavigationEvent.ShowError -> {
+                is PlayerMessagesEvent.ShowError -> {
                     Toast.makeText(context, event.messageResId, Toast.LENGTH_SHORT).show()
                 }
             }

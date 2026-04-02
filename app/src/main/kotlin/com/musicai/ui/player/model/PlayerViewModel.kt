@@ -26,6 +26,7 @@ import javax.inject.Inject
 interface PlayerViewModel {
     val state: StateFlow<PlayerState>
     val navigationEvents: SharedFlow<PlayerNavigationEvent>
+    val messageEvents: SharedFlow<PlayerMessagesEvent>
 
     fun onPlayPause()
     fun onNext()
@@ -49,8 +50,11 @@ class PlayerViewModelImpl @Inject constructor(
     private val _state = MutableStateFlow(PlayerState())
     override val state = _state.asStateFlow()
 
-    private val _navigationEvents = MutableSharedFlow<PlayerNavigationEvent>(replay = 1)
+    private val _navigationEvents = MutableSharedFlow<PlayerNavigationEvent>()
     override val navigationEvents = _navigationEvents.asSharedFlow()
+
+    private val _messageEvents = MutableSharedFlow<PlayerMessagesEvent>(replay = 1)
+    override val messageEvents = _messageEvents.asSharedFlow()
 
     private var audioPlayer: AudioPlayer? = null
     private var progressJob: Job? = null
@@ -75,7 +79,7 @@ class PlayerViewModelImpl @Inject constructor(
         if (url.isNullOrBlank()) {
             logger.warn("Preview URL not available for song: ${song.trackName}")
             viewModelScope.launch {
-                _navigationEvents.emit(PlayerNavigationEvent.ShowError(R.string.preview_not_available))
+                _messageEvents.emit(PlayerMessagesEvent.ShowError(R.string.preview_not_available))
             }
             return
         }
@@ -83,7 +87,7 @@ class PlayerViewModelImpl @Inject constructor(
         if (!connectivityChecker.isInternetAvailable()) {
             logger.error("No internet connection while initializing player")
             viewModelScope.launch {
-                _navigationEvents.emit(PlayerNavigationEvent.NoConnectionError)
+                _messageEvents.emit(PlayerMessagesEvent.NoConnectionError)
             }
             return
         }
@@ -118,7 +122,7 @@ class PlayerViewModelImpl @Inject constructor(
             player.setOnErrorListener { _, _, _ ->
                 logger.error("Audio player error while playing: ${_state.value.song?.trackName}")
                 viewModelScope.launch {
-                    _navigationEvents.emit(PlayerNavigationEvent.ShowError(R.string.playback_error))
+                    _messageEvents.emit(PlayerMessagesEvent.ShowError(R.string.playback_error))
                 }
                 _state.update {
                     it.copy(isPreparing = false)

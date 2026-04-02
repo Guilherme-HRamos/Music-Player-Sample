@@ -1,7 +1,6 @@
 package com.musicai.ui.album.model
 
 import androidx.lifecycle.SavedStateHandle
-import com.musicai.R
 import com.musicai.ui.utils.MainDispatcherRule
 import com.musicai.ui.utils.fakes.FakeConnectivityChecker
 import com.musicai.ui.utils.fakes.FakeGetAlbumSongsUseCase
@@ -65,18 +64,18 @@ class AlbumViewModelTest {
         getAlbumSongs.setError(RuntimeException("Network Error"))
 
         // When
-        val receivedEvents = mutableListOf<AlbumNavigationEvent>()
+        val receivedEvents = mutableListOf<AlbumMessageEvent>()
         val job = launch {
             val savedStateHandle = SavedStateHandle(mapOf("collectionId" to collectionId))
             viewModel = AlbumViewModelImpl(savedStateHandle, getAlbumSongs, connectivityChecker, MutedLogger())
-            viewModel.navigationEvents.collect { event ->
+            viewModel.messageEvents.collect { event ->
                 receivedEvents.add(event)
             }
         }
         advanceUntilIdle()
 
         // Then
-        assertTrue(receivedEvents.any { it is AlbumNavigationEvent.ShowError })
+        assertTrue(receivedEvents.any { it is AlbumMessageEvent.ShowError })
 
         // And when retry
         getAlbumSongs.setSuccess(getMockAlbum(collectionId))
@@ -97,18 +96,18 @@ class AlbumViewModelTest {
         connectivityChecker.setConnected(false)
 
         // When
-        val receivedEvents = mutableListOf<AlbumNavigationEvent>()
+        val receivedEvents = mutableListOf<AlbumMessageEvent>()
         val job = launch {
             val savedStateHandle = SavedStateHandle(mapOf("collectionId" to collectionId))
             viewModel = AlbumViewModelImpl(savedStateHandle, getAlbumSongs, connectivityChecker, MutedLogger())
-            viewModel.navigationEvents.collect { event ->
+            viewModel.messageEvents.collect { event ->
                 receivedEvents.add(event)
             }
         }
         advanceUntilIdle()
 
         // Then
-        assertTrue(receivedEvents.any { it is AlbumNavigationEvent.NoConnectionError })
+        assertTrue(receivedEvents.any { it is AlbumMessageEvent.NoConnectionError })
         job.cancel()
     }
 
@@ -122,9 +121,9 @@ class AlbumViewModelTest {
         connectivityChecker.setConnected(false)
 
         // When
-        val receivedEvents = mutableListOf<AlbumNavigationEvent>()
+        val receivedEvents = mutableListOf<AlbumMessageEvent>()
         val job = launch {
-            viewModel.navigationEvents.collect { event ->
+            viewModel.messageEvents.collect { event ->
                 receivedEvents.add(event)
             }
         }
@@ -133,7 +132,7 @@ class AlbumViewModelTest {
         runCurrent()
 
         // Then
-        assertTrue(receivedEvents.any { it is AlbumNavigationEvent.NoConnectionError })
+        assertTrue(receivedEvents.any { it is AlbumMessageEvent.NoConnectionError })
         job.cancel()
     }
 }

@@ -114,8 +114,8 @@ class SongsViewModelTest {
 
         // When
         val event = launch {
-            viewModel.navigationEvents.collect { navEvent ->
-                if (navEvent is SongsNavigationEvent.GenericError) {
+            viewModel.messageEvents.collect { navEvent ->
+                if (navEvent is SongsMessageEvent.GenericError) {
                     assertTrue(true)
                 }
             }
@@ -135,9 +135,9 @@ class SongsViewModelTest {
         connectivityChecker.setConnected(false)
 
         // When
-        val receivedEvent = mutableListOf<SongsNavigationEvent>()
+        val receivedEvent = mutableListOf<SongsMessageEvent>()
         val job = launch {
-            viewModel.navigationEvents.collect { event ->
+            viewModel.messageEvents.collect { event ->
                 receivedEvent.add(event)
             }
         }
@@ -146,7 +146,7 @@ class SongsViewModelTest {
         advanceUntilIdle()
 
         // Then
-        assertTrue(receivedEvent.any { it is SongsNavigationEvent.NoConnectionError })
+        assertTrue(receivedEvent.any { it is SongsMessageEvent.NoConnectionError })
         job.cancel()
     }
 
@@ -158,9 +158,9 @@ class SongsViewModelTest {
         viewModel.onQueryChange("Query")
 
         // When
-        val receivedEvent = mutableListOf<SongsNavigationEvent>()
+        val receivedEvent = mutableListOf<SongsMessageEvent>()
         val job = launch {
-            viewModel.navigationEvents.collect { event ->
+            viewModel.messageEvents.collect { event ->
                 receivedEvent.add(event)
             }
         }
@@ -169,7 +169,7 @@ class SongsViewModelTest {
         advanceUntilIdle()
 
         // Then
-        assertTrue(receivedEvent.any { it is SongsNavigationEvent.NoConnectionError })
+        assertTrue(receivedEvent.any { it is SongsMessageEvent.NoConnectionError })
         job.cancel()
     }
 
@@ -186,9 +186,9 @@ class SongsViewModelTest {
         connectivityChecker.setConnected(false)
 
         // When
-        val receivedEvent = mutableListOf<SongsNavigationEvent>()
+        val receivedEvent = mutableListOf<SongsMessageEvent>()
         val job = launch {
-            viewModel.navigationEvents.collect { event ->
+            viewModel.messageEvents.collect { event ->
                 receivedEvent.add(event)
             }
         }
@@ -197,7 +197,7 @@ class SongsViewModelTest {
         advanceUntilIdle()
 
         // Then
-        assertTrue(receivedEvent.any { it is SongsNavigationEvent.NoConnectionError })
+        assertTrue(receivedEvent.any { it is SongsMessageEvent.NoConnectionError })
         job.cancel()
     }
 
@@ -214,9 +214,9 @@ class SongsViewModelTest {
         connectivityChecker.setConnected(false)
 
         // When
-        val receivedEvent = mutableListOf<SongsNavigationEvent>()
+        val receivedEvent = mutableListOf<SongsMessageEvent>()
         val job = launch {
-            viewModel.navigationEvents.collect { event ->
+            viewModel.messageEvents.collect { event ->
                 receivedEvent.add(event)
             }
         }
@@ -225,7 +225,7 @@ class SongsViewModelTest {
         advanceUntilIdle()
 
         // Then
-        assertTrue(receivedEvent.any { it is SongsNavigationEvent.NoConnectionError })
+        assertTrue(receivedEvent.any { it is SongsMessageEvent.NoConnectionError })
         job.cancel()
     }
 }

@@ -29,7 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.musicai.R
 import com.musicai.domain.model.Album
 import com.musicai.domain.model.Song
-import com.musicai.ui.album.model.AlbumNavigationEvent
+import com.musicai.ui.album.model.AlbumMessageEvent
 import com.musicai.ui.album.model.AlbumState
 import com.musicai.ui.album.model.AlbumViewModel
 import com.musicai.ui.shared.components.ContentStateWrapper
@@ -48,12 +48,12 @@ fun AlbumScreen(
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        viewModel.navigationEvents.collect { event ->
+        viewModel.messageEvents.collect { event ->
             when (event) {
-                is AlbumNavigationEvent.NoConnectionError -> {
+                is AlbumMessageEvent.NoConnectionError -> {
                     Toast.makeText(context, R.string.no_internet_connection, Toast.LENGTH_SHORT).show()
                 }
-                is AlbumNavigationEvent.ShowError -> {
+                is AlbumMessageEvent.ShowError -> {
                     Toast.makeText(context, event.messageResId, Toast.LENGTH_SHORT).show()
                 }
             }
