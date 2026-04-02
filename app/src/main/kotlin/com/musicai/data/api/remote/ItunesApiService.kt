@@ -9,8 +9,7 @@ interface ItunesApiService {
     @GET("search")
     suspend fun searchSongs(
         @Query("term") term: String,
-        @Query("limit") limit: Int = PAGE_SIZE,
-        @Query("offset") offset: Int = 0,
+        @Query("limit") limit: Int,
         @Query("entity") entity: String = "song",
         @Query("media") media: String = "music",
         @Query("country") country: String = "US",
@@ -24,6 +23,5 @@ interface ItunesApiService {
 
     companion object {
         const val BASE_URL = "https://itunes.apple.com/"
-        const val PAGE_SIZE = 20
     }
 }

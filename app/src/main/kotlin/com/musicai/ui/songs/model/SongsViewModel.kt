@@ -52,6 +52,7 @@ class SongsViewModelImpl @Inject constructor(
     override val navigationEvents = _navigationEvents.asSharedFlow()
 
     private var songsSourceJob: Job? = null
+    private var currentPage: Int = 0
 
     init {
         observeRecentSongs()
@@ -62,7 +63,7 @@ class SongsViewModelImpl @Inject constructor(
             .onEach { recent ->
                 if (!_state.value.isSearchActive) {
                     logWip("SongsViewModel -> recent: $recent")
-                    _state.update { it.copy(songs = recent) }
+                    _state.update { it.copy(songs = recent.distinctBy { song -> song.trackId }) }
                 }
             }
             .launchIn(viewModelScope)
@@ -90,15 +91,16 @@ class SongsViewModelImpl @Inject constructor(
         val query = _state.value.query.trim()
         if (query.isBlank()) return
         songsSourceJob?.cancel()
-        _state.update { it.copy(isLoading = true, songs = emptyList(), currentPage = 0, hasMore = true, error = null) }
+        currentPage = 0
+        _state.update { it.copy(isLoading = true, songs = emptyList(), hasMore = true, error = null) }
         songsSourceJob = viewModelScope.launch {
-            searchSongs(query, page = 0)
+            searchSongs(query, page = 1)
                 .onSuccess { result ->
+                    currentPage = 1
                     _state.update {
                         it.copy(
                             isLoading = false,
-                            songs = result.songs,
-                            currentPage = result.currentPage,
+                            songs = result.songs.distinctBy { song -> song.trackId },
                             hasMore = result.hasMore,
                         )
                     }
@@ -120,17 +122,18 @@ class SongsViewModelImpl @Inject constructor(
         val current = _state.value
         if (current.isLoadingMore || !current.hasMore || current.query.isBlank()) return
 
-        val nextPage = current.currentPage + 1
+        val nextPage = currentPage + 1
         _state.update { it.copy(isLoadingMore = true) }
 
         viewModelScope.launch {
-            searchSongs(current.query, page = nextPage, previousResults = current.songs)
+            searchSongs(current.query, page = nextPage)
                 .onSuccess { result ->
+                    currentPage = nextPage
                     _state.update { state ->
+                        val newSongs = (state.songs + result.songs).distinctBy { it.trackId }
                         state.copy(
                             isLoadingMore = false,
-                            songs = state.songs + result.songs,
-                            currentPage = result.currentPage,
+                            songs = newSongs,
                             hasMore = result.hasMore,
                         )
                     }
@@ -178,14 +181,15 @@ class SongsViewModelImpl @Inject constructor(
         }
 
         _state.update { it.copy(isRefreshing = true, error = null) }
+        currentPage = 0
         songsSourceJob = viewModelScope.launch {
-            searchSongs(query, page = 0)
+            searchSongs(query, page = 1)
                 .onSuccess { result ->
+                    currentPage = 1
                     _state.update {
                         it.copy(
                             isRefreshing = false,
-                            songs = result.songs,
-                            currentPage = result.currentPage,
+                            songs = result.songs.distinctBy { song -> song.trackId },
                             hasMore = result.hasMore,
                         )
                     }

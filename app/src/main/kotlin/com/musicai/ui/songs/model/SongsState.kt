@@ -11,6 +11,5 @@ data class SongsState(
     val isRefreshing: Boolean = false,
     val error: String? = null,
     val hasMore: Boolean = true,
-    val currentPage: Int = 0,
     val selectedSong: Song? = null,
 )
