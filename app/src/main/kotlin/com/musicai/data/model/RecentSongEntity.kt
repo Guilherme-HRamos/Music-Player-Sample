@@ -27,3 +27,15 @@ data class RecentSongEntity(
         trackTimeMillis = trackTimeMillis,
     )
 }
+
+fun Song.toRecentEntity() = RecentSongEntity(
+    trackId = trackId,
+    trackName = trackName,
+    artistName = artistName,
+    collectionName = collectionName,
+    collectionId = collectionId,
+    artworkUrl = artworkUrl,
+    previewUrl = previewUrl,
+    trackTimeMillis = trackTimeMillis,
+    playedAt = System.currentTimeMillis(),
+)

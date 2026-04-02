@@ -17,9 +17,9 @@ internal fun getMockSongResponse(id: Long = 1L) = SongResponse(
     kind = "song"
 )
 
-internal fun getMockSearchResponse(count: Int = 5) = SearchResponse(
+internal fun getMockSearchResponse(count: Int = 5, startId: Long = 1L) = SearchResponse(
     resultCount = count,
-    results = (1..count).map { getMockSongResponse(it.toLong()) }
+    results = (0 until count).map { getMockSongResponse(startId + it.toLong()) }
 )
 
 internal fun getMockSongEntity(id: Long = 1L, query: String = "") = SongEntity(
