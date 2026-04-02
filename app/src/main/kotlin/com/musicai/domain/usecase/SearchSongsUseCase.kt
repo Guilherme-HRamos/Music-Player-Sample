@@ -6,6 +6,7 @@ import javax.inject.Inject
 
 interface SearchSongsUseCase {
     suspend operator fun invoke(query: String, page: Int): Result<PaginatedSearch>
+    suspend fun refresh(query: String): Result<PaginatedSearch>
 }
 
 class SearchSongsUseCaseImpl @Inject constructor(
@@ -13,4 +14,7 @@ class SearchSongsUseCaseImpl @Inject constructor(
 ) : SearchSongsUseCase {
     override suspend fun invoke(query: String, page: Int): Result<PaginatedSearch> =
         repository.searchSongs(query, page)
+
+    override suspend fun refresh(query: String): Result<PaginatedSearch> =
+        repository.refreshSearch(query)
 }

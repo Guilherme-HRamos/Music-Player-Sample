@@ -16,4 +16,7 @@ interface SongDao {
 
     @Query("SELECT * FROM songs WHERE collectionId = :collectionId ORDER BY trackName ASC")
     suspend fun getAlbumSongs(collectionId: Long): List<SongEntity>
+
+    @Query("DELETE FROM songs WHERE searchQuery = :query")
+    suspend fun clearSearchCache(query: String)
 }

@@ -5,6 +5,7 @@ import com.musicai.ui.shared.PlayerController
 import com.musicai.ui.utils.MainDispatcherRule
 import com.musicai.ui.utils.fakes.FakeGetRecentSongsUseCase
 import com.musicai.ui.utils.fakes.FakeSearchSongsUseCase
+import com.musicai.ui.utils.fakes.MutedLogger
 import com.musicai.ui.utils.mocks.getMockSongsList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -36,7 +37,7 @@ class SongsViewModelTest {
         getRecentSongs.setSuccess(getMockSongsList(5))
         
         playerController = PlayerController()
-        viewModel = SongsViewModelImpl(searchSongs, getRecentSongs, playerController)
+        viewModel = SongsViewModelImpl(searchSongs, getRecentSongs, playerController, MutedLogger())
     }
 
     @Test

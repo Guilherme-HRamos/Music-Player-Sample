@@ -40,6 +40,12 @@ class SongRepositoryImpl @Inject constructor(
         return Result.success(session!!.pageAt(page) ?: PaginatedSearch(emptyList(), false))
     }
 
+    override suspend fun refreshSearch(query: String): Result<PaginatedSearch> {
+        session = null
+        dao.clearSearchCache(query)
+        return searchSongs(query, page = 1)
+    }
+
     private suspend fun fetchNextSlot(query: String): Result<Unit> = runCatching {
         if (isFetching) return@runCatching
 

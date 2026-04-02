@@ -5,7 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.musicai.domain.model.Song
 import com.musicai.domain.usecase.GetRecentSongsUseCase
 import com.musicai.domain.usecase.SearchSongsUseCase
-import com.musicai.plugin.utils.logWip
+import com.musicai.plugin.utils.LogCatLogger
+import com.musicai.plugin.utils.Logger
 import com.musicai.ui.shared.PlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -43,6 +44,7 @@ class SongsViewModelImpl @Inject constructor(
     private val searchSongs: SearchSongsUseCase,
     private val getRecentSongs: GetRecentSongsUseCase,
     private val playerController: PlayerController,
+    private val logger: Logger,
 ) : ViewModel(), SongsViewModel {
 
     private val _state = MutableStateFlow(SongsState())
@@ -58,6 +60,7 @@ class SongsViewModelImpl @Inject constructor(
         observeRecentSongs()
     }
     private fun observeRecentSongs() {
+        logger.debug("Observing recent songs")
         songsSourceJob?.cancel()
         songsSourceJob = getRecentSongs()
             .onEach { recent ->
@@ -95,6 +98,7 @@ class SongsViewModelImpl @Inject constructor(
         songsSourceJob = viewModelScope.launch {
             searchSongs(query, page = 1)
                 .onSuccess { result ->
+                    logger.debug("Load Success -> Page=1 | Songs=${result.songs.size}")
                     currentPage = 1
                     _state.update {
                         it.copy(
@@ -105,6 +109,7 @@ class SongsViewModelImpl @Inject constructor(
                     }
                 }
                 .onFailure { e ->
+                    logger.error("Search failed: ${e.message}", e)
                     _state.update {
                         it.copy(isLoading = false, error = e.message ?: "Search failed")
                     }
@@ -119,7 +124,10 @@ class SongsViewModelImpl @Inject constructor(
 
     override fun onLoadMore() {
         val current = _state.value
-        if (current.isLoadingMore || !current.hasMore || current.query.isBlank()) return
+        if (current.isLoadingMore || !current.hasMore || current.query.isBlank()) {
+            logger.info("Skipping load more")
+            return
+        }
 
         val nextPage = currentPage + 1
         _state.update { it.copy(isLoadingMore = true) }
@@ -127,6 +135,7 @@ class SongsViewModelImpl @Inject constructor(
         viewModelScope.launch {
             searchSongs(current.query, page = nextPage)
                 .onSuccess { result ->
+                    logger.debug("Load Success -> Page=$nextPage | Songs=${result.songs.size}")
                     currentPage = nextPage
                     _state.update { state ->
                         val newSongs = (state.songs + result.songs).distinctBy { it.trackId }
@@ -137,7 +146,8 @@ class SongsViewModelImpl @Inject constructor(
                         )
                     }
                 }
-                .onFailure {
+                .onFailure { e ->
+                    logger.error("Search failed: ${e.message}", e)
                     _state.update { it.copy(isLoadingMore = false) }
                 }
         }
@@ -170,6 +180,7 @@ class SongsViewModelImpl @Inject constructor(
         songsSourceJob?.cancel()
 
         if (query.isBlank()) {
+            logger.info("Query is blank, refreshing recent songs")
             _state.update { it.copy(isRefreshing = true) }
             songsSourceJob = viewModelScope.launch {
                 delay(500)
@@ -182,8 +193,9 @@ class SongsViewModelImpl @Inject constructor(
         _state.update { it.copy(isRefreshing = true, error = null) }
         currentPage = 0
         songsSourceJob = viewModelScope.launch {
-            searchSongs(query, page = 1)
+            searchSongs.refresh(query)
                 .onSuccess { result ->
+                    logger.debug("Refresh Success -> Page=1 | Songs=${result.songs.size}")
                     currentPage = 1
                     _state.update {
                         it.copy(

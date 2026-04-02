@@ -56,7 +56,7 @@ import com.musicai.ui.theme.components.AppLoadingIndicator
 import com.musicai.ui.theme.screenTitle
 
 @Composable
-fun SongsScreen(
+internal fun SongsScreen(
     viewModel: SongsViewModel,
     onNavigateToPlayer: (Long) -> Unit,
     onNavigateToAlbum: (Long) -> Unit,
