@@ -7,48 +7,115 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 internal sealed class FakeSongRepository : SongRepository {
+    var searchSongsCalls = 0
+        private set
+    var lastSearchQuery: String? = null
+        private set
+    var lastSearchPage: Int? = null
+        private set
+
+    protected fun trackSearch(query: String, page: Int) {
+        searchSongsCalls++
+        lastSearchQuery = query
+        lastSearchPage = page
+    }
+
+    var getRecentSongsCalls = 0
+        private set
+    var lastRecentSongsLimit: Int? = null
+        private set
+
+    protected fun trackRecent(limit: Int) {
+        getRecentSongsCalls++
+        lastRecentSongsLimit = limit
+    }
+
+    var getAlbumSongsCalls = 0
+        private set
+    var lastAlbumCollectionId: Long? = null
+        private set
+
+    protected fun trackAlbum(collectionId: Long) {
+        getAlbumSongsCalls++
+        lastAlbumCollectionId = collectionId
+    }
+
+    var markAsPlayedCalls = 0
+        private set
+    var lastMarkedSong: Song? = null
+        private set
+
+    protected fun trackMarkAsPlayed(song: Song) {
+        markAsPlayedCalls++
+        lastMarkedSong = song
+    }
+
     data class Success(
         var songs: List<Song> = emptyList(),
         var paginatedSearch: PaginatedSearch = PaginatedSearch(emptyList(), false),
         var recentSongs: List<Song> = emptyList()
     ) : FakeSongRepository() {
-        override suspend fun searchSongs(query: String, page: Int): Result<PaginatedSearch> =
-            Result.success(paginatedSearch)
+        override suspend fun searchSongs(query: String, page: Int): Result<PaginatedSearch> {
+            trackSearch(query, page)
+            return Result.success(paginatedSearch)
+        }
 
-        override fun getRecentSongs(limit: Int): Flow<List<Song>> =
-            flowOf(recentSongs.take(limit))
+        override fun getRecentSongs(limit: Int): Flow<List<Song>> {
+            trackRecent(limit)
+            return flowOf(recentSongs.take(limit))
+        }
 
-        override suspend fun getAlbumSongs(collectionId: Long): Result<List<Song>> =
-            Result.success(songs)
+        override suspend fun getAlbumSongs(collectionId: Long): Result<List<Song>> {
+            trackAlbum(collectionId)
+            return Result.success(songs)
+        }
 
         override suspend fun markAsPlayed(song: Song) {
-            // No-op or update recentSongs if needed for specific tests
+            trackMarkAsPlayed(song)
         }
     }
 
-    data object Empty : FakeSongRepository() {
-        override suspend fun searchSongs(query: String, page: Int): Result<PaginatedSearch> =
-            Result.success(PaginatedSearch(emptyList(), false))
+    data class Empty(
+        var paginatedSearch: PaginatedSearch = PaginatedSearch(emptyList(), false)
+    ) : FakeSongRepository() {
+        override suspend fun searchSongs(query: String, page: Int): Result<PaginatedSearch> {
+            trackSearch(query, page)
+            return Result.success(paginatedSearch)
+        }
 
-        override fun getRecentSongs(limit: Int): Flow<List<Song>> =
-            flowOf(emptyList())
+        override fun getRecentSongs(limit: Int): Flow<List<Song>> {
+            trackRecent(limit)
+            return flowOf(emptyList())
+        }
 
-        override suspend fun getAlbumSongs(collectionId: Long): Result<List<Song>> =
-            Result.success(emptyList())
+        override suspend fun getAlbumSongs(collectionId: Long): Result<List<Song>> {
+            trackAlbum(collectionId)
+            return Result.success(emptyList())
+        }
 
-        override suspend fun markAsPlayed(song: Song) {}
+        override suspend fun markAsPlayed(song: Song) {
+            trackMarkAsPlayed(song)
+        }
     }
 
     data class Error(val throwable: Throwable = IllegalArgumentException()) : FakeSongRepository() {
-        override suspend fun searchSongs(query: String, page: Int): Result<PaginatedSearch> =
-            Result.failure(throwable)
+        override suspend fun searchSongs(query: String, page: Int): Result<PaginatedSearch> {
+            trackSearch(query, page)
+            return Result.failure(throwable)
+        }
 
-        override fun getRecentSongs(limit: Int): Flow<List<Song>> =
-            flowOf(emptyList())
+        override fun getRecentSongs(limit: Int): Flow<List<Song>> {
+            trackRecent(limit)
+            return flowOf(emptyList())
+        }
 
-        override suspend fun getAlbumSongs(collectionId: Long): Result<List<Song>> =
-            Result.failure(throwable)
+        override suspend fun getAlbumSongs(collectionId: Long): Result<List<Song>> {
+            trackAlbum(collectionId)
+            return Result.failure(throwable)
+        }
 
-        override suspend fun markAsPlayed(song: Song) {}
+        override suspend fun markAsPlayed(song: Song) {
+            trackMarkAsPlayed(song)
+        }
     }
 }
