@@ -1,3 +1,27 @@
 <resources>
     <string name="app_name">MusicAI</string>
+
+    <!-- Navigation & Titles -->
+    <string name="songs_title">Songs</string>
+    <string name="now_playing">Now playing</string>
+    <string name="album_fallback">Album</string>
+    <string name="view_album">View album</string>
+    <string name="retry">Retry</string>
+
+    <!-- Search -->
+    <string name="search_placeholder">Search</string>
+    <string name="empty_search_results">No results found</string>
+    <string name="empty_songs_list">Your recent songs will appear here</string>
+    <string name="search_failed">Search failed</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_search">Search</string>
+    <string name="cd_clear">Clear</string>
+    <string name="cd_back">Back</string>
+    <string name="cd_more_options">More options</string>
+    <string name="cd_pause">Pause</string>
+    <string name="cd_play">Play</string>
+    <string name="cd_previous">Previous</string>
+    <string name="cd_next">Next</string>
+    <string name="cd_repeat">Repeat</string>
 </resources>

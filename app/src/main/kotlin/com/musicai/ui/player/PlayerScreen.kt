@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -116,7 +117,7 @@ private fun PlayerContent(
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.cd_back),
                     tint = MaterialTheme.colorScheme.onBackground,
                 )
             }
@@ -124,7 +125,7 @@ private fun PlayerContent(
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 4.dp),
-                text = "Now playing",
+                text = stringResource(R.string.now_playing),
                 style = MaterialTheme.typography.displaySmall,
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Start,
@@ -138,7 +139,7 @@ private fun PlayerContent(
             ) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
-                    contentDescription = "More options",
+                    contentDescription = stringResource(R.string.cd_more_options),
                     tint = MaterialTheme.colorScheme.onBackground,
                 )
             }
@@ -249,7 +250,7 @@ private fun PlayerContent(
                     ) {
                         Icon(
                             imageVector = if (state.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = if (state.isPlaying) "Pause" else "Play",
+                            contentDescription = if (state.isPlaying) stringResource(R.string.cd_pause) else stringResource(R.string.cd_play),
                             tint = MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier.size(36.dp),
                         )
@@ -262,7 +263,7 @@ private fun PlayerContent(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_backward),
-                            contentDescription = "Previous",
+                            contentDescription = stringResource(R.string.cd_previous),
                             tint = if (state.hasPrevious) {
                                 MaterialTheme.colorScheme.onBackground
                             } else {
@@ -279,7 +280,7 @@ private fun PlayerContent(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_forward),
-                            contentDescription = "Next",
+                            contentDescription = stringResource(R.string.cd_next),
                             tint = if (state.hasNext) {
                                 MaterialTheme.colorScheme.onBackground
                             } else {
@@ -296,7 +297,7 @@ private fun PlayerContent(
                         IconButton(onClick = onToggleLoop) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_repeat),
-                                contentDescription = "Repeat",
+                                contentDescription = stringResource(R.string.cd_repeat),
                                 tint = if (state.loopEnabled) {
                                     MaterialTheme.colorScheme.onBackground
                                 } else {

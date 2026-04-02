@@ -18,7 +18,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -41,9 +40,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.musicai.R
 import com.musicai.domain.model.Song
 import com.musicai.ui.shared.SongListItem
@@ -51,6 +50,7 @@ import com.musicai.ui.songs.model.SongsNavigationEvent
 import com.musicai.ui.songs.model.SongsState
 import com.musicai.ui.songs.model.SongsViewModel
 import com.musicai.ui.theme.MusicAITheme
+import com.musicai.ui.theme.MusicTokens
 import com.musicai.ui.theme.components.AppErrorState
 import com.musicai.ui.theme.components.AppLoadingIndicator
 import com.musicai.ui.theme.screenTitle
@@ -146,7 +146,7 @@ private fun SongsContent(
                 )
 
                 state.songs.isEmpty() -> AppErrorState(
-                    message = if (state.isSearchActive) "Nenhum resultado encontrado" else "Suas músicas recentes aparecerão aqui",
+                    message = if (state.isSearchActive) stringResource(R.string.empty_search_results) else stringResource(R.string.empty_songs_list),
                 )
 
                 else -> LazyColumn(
@@ -161,8 +161,8 @@ private fun SongsContent(
                         )
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.surfaceVariant,
-                            thickness = 0.5.dp,
-                            modifier = Modifier.padding(start = 76.dp),
+                            thickness = MusicTokens.SongList.horizontalDividerThickness,
+                            modifier = Modifier.padding(start = MusicTokens.SongList.horizontalDividerPadding),
                         )
                     }
                 }
@@ -201,24 +201,24 @@ private fun SongsTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(72.dp)
-            .padding(horizontal = 24.dp),
+            .height(MusicTokens.Default.topBarHeight)
+            .padding(horizontal = MusicTokens.Default.horizontalScreenPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Songs",
+            text = stringResource(R.string.songs_title),
             style = MaterialTheme.typography.screenTitle,
             color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.weight(1f),
         )
         if (!isSearchActive)
             IconButton(
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(MusicTokens.Default.iconButtonSize),
                 onClick = onToggleSearch,
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_search),
-                    contentDescription = "Search",
+                    contentDescription = stringResource(R.string.cd_search),
                     tint = MaterialTheme.colorScheme.onBackground,
                 )
             }
@@ -231,7 +231,7 @@ private fun SongsTopBar(
             leadingIcon = {
                 Icon(
                     painter = painterResource(R.drawable.ic_search),
-                    contentDescription = "Search",
+                    contentDescription = stringResource(R.string.cd_search),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             },
@@ -239,12 +239,12 @@ private fun SongsTopBar(
                 IconButton(onClick = onClear) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Clear",
+                        contentDescription = stringResource(R.string.cd_clear),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             },
-            placeholder = { Text("Search") },
+            placeholder = { Text(stringResource(R.string.search_placeholder)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = {
@@ -263,10 +263,10 @@ private fun SongsTopBar(
                 unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
                 cursorColor = MaterialTheme.colorScheme.onBackground,
             ),
-            shape = RoundedCornerShape(12.dp), // Add rounding for a modern look
+            shape = RoundedCornerShape(MusicTokens.Default.defaultRoundedCornerSize), // Add rounding for a modern look
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(horizontal = MusicTokens.SongList.textFieldHorizontalPadding, vertical = MusicTokens.SongList.textFieldVerticalPadding),
         )
     }
 }
