@@ -1,10 +1,14 @@
 package com.musicai.ui.album.model
 
 import androidx.lifecycle.SavedStateHandle
+import com.musicai.R
 import com.musicai.ui.utils.MainDispatcherRule
+import com.musicai.ui.utils.fakes.FakeConnectivityChecker
 import com.musicai.ui.utils.fakes.FakeGetAlbumSongsUseCase
 import com.musicai.ui.utils.mocks.getMockAlbum
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -21,17 +25,19 @@ class AlbumViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private lateinit var getAlbumSongs: FakeGetAlbumSongsUseCase
+    private lateinit var connectivityChecker: FakeConnectivityChecker
     private lateinit var viewModel: AlbumViewModelImpl
     private val collectionId = 123L
 
     @Before
     fun setup() {
         getAlbumSongs = FakeGetAlbumSongsUseCase()
+        connectivityChecker = FakeConnectivityChecker()
     }
 
     private fun createViewModel() {
         val savedStateHandle = SavedStateHandle(mapOf("collectionId" to collectionId))
-        viewModel = AlbumViewModelImpl(savedStateHandle, getAlbumSongs)
+        viewModel = AlbumViewModelImpl(savedStateHandle, getAlbumSongs, connectivityChecker)
     }
 
     @Test
@@ -53,27 +59,80 @@ class AlbumViewModelTest {
     }
 
     @Test
-    fun `when load fails then should show error state and allow retry`() = runTest {
+    fun `when load fails then should emit error event and allow retry`() = runTest {
         // Given
         getAlbumSongs.setError(RuntimeException("Network Error"))
 
         // When
-        createViewModel()
-        runCurrent()
+        val receivedEvents = mutableListOf<AlbumNavigationEvent>()
+        val job = launch {
+            val savedStateHandle = SavedStateHandle(mapOf("collectionId" to collectionId))
+            viewModel = AlbumViewModelImpl(savedStateHandle, getAlbumSongs, connectivityChecker)
+            viewModel.navigationEvents.collect { event ->
+                receivedEvents.add(event)
+            }
+        }
+        advanceUntilIdle()
 
         // Then
-        val errorState = viewModel.state.value
-        assertEquals("Network Error", errorState.error)
+        assertTrue(receivedEvents.any { it is AlbumNavigationEvent.ShowError })
 
         // And when retry
         getAlbumSongs.setSuccess(getMockAlbum(collectionId))
         viewModel.onRetry()
-        runCurrent()
+        advanceUntilIdle()
 
         // Then
         val successState = viewModel.state.value
         assertFalse(successState.isLoading)
         assertTrue(successState.error == null)
         assertEquals(2, getAlbumSongs.invokeCalls)
+        job.cancel()
+    }
+
+    @Test
+    fun `when no internet connection on load then should emit no connection error`() = runTest {
+        // Given
+        connectivityChecker.setConnected(false)
+
+        // When
+        val receivedEvents = mutableListOf<AlbumNavigationEvent>()
+        val job = launch {
+            val savedStateHandle = SavedStateHandle(mapOf("collectionId" to collectionId))
+            viewModel = AlbumViewModelImpl(savedStateHandle, getAlbumSongs, connectivityChecker)
+            viewModel.navigationEvents.collect { event ->
+                receivedEvents.add(event)
+            }
+        }
+        advanceUntilIdle()
+
+        // Then
+        assertTrue(receivedEvents.any { it is AlbumNavigationEvent.NoConnectionError })
+        job.cancel()
+    }
+
+    @Test
+    fun `when no internet connection on retry then should emit no connection error`() = runTest {
+        // Given
+        getAlbumSongs.setSuccess(getMockAlbum(collectionId))
+        createViewModel()
+        runCurrent()
+
+        connectivityChecker.setConnected(false)
+
+        // When
+        val receivedEvents = mutableListOf<AlbumNavigationEvent>()
+        val job = launch {
+            viewModel.navigationEvents.collect { event ->
+                receivedEvents.add(event)
+            }
+        }
+        runCurrent()
+        viewModel.onRetry()
+        runCurrent()
+
+        // Then
+        assertTrue(receivedEvents.any { it is AlbumNavigationEvent.NoConnectionError })
+        job.cancel()
     }
 }

@@ -40,4 +40,8 @@ internal class FakeSongDao : SongDao {
         return buffer.filter { it.collectionId == collectionId }
             .sortedBy { it.trackName }
     }
+
+    override suspend fun clearSearchCache(query: String) {
+        buffer.removeAll { it.searchQuery == query }
+    }
 }

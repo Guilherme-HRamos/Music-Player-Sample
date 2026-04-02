@@ -47,7 +47,7 @@ class PlayerViewModelImpl @Inject constructor(
     private val _state = MutableStateFlow(PlayerState())
     override val state = _state.asStateFlow()
 
-    private val _navigationEvents = MutableSharedFlow<PlayerNavigationEvent>()
+    private val _navigationEvents = MutableSharedFlow<PlayerNavigationEvent>(replay = 1)
     override val navigationEvents = _navigationEvents.asSharedFlow()
 
     private var audioPlayer: AudioPlayer? = null

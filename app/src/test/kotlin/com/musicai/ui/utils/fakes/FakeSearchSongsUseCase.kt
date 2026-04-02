@@ -24,4 +24,10 @@ class FakeSearchSongsUseCase : SearchSongsUseCase {
         lastPage = page
         return result
     }
+
+    override suspend fun refresh(query: String): Result<PaginatedSearch> {
+        invokeCalls++
+        lastQuery = query
+        return result
+    }
 }

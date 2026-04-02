@@ -60,6 +60,11 @@ internal sealed class FakeSongRepository : SongRepository {
             return Result.success(paginatedSearch)
         }
 
+        override suspend fun refreshSearch(query: String): Result<PaginatedSearch> {
+            trackSearch(query, 1)
+            return Result.success(paginatedSearch)
+        }
+
         override fun getRecentSongs(limit: Int): Flow<List<Song>> {
             trackRecent(limit)
             return flowOf(recentSongs.take(limit))
@@ -83,6 +88,11 @@ internal sealed class FakeSongRepository : SongRepository {
             return Result.success(paginatedSearch)
         }
 
+        override suspend fun refreshSearch(query: String): Result<PaginatedSearch> {
+            trackSearch(query, 1)
+            return Result.success(paginatedSearch)
+        }
+
         override fun getRecentSongs(limit: Int): Flow<List<Song>> {
             trackRecent(limit)
             return flowOf(emptyList())
@@ -101,6 +111,11 @@ internal sealed class FakeSongRepository : SongRepository {
     data class Error(val throwable: Throwable = IllegalArgumentException()) : FakeSongRepository() {
         override suspend fun searchSongs(query: String, page: Int): Result<PaginatedSearch> {
             trackSearch(query, page)
+            return Result.failure(throwable)
+        }
+
+        override suspend fun refreshSearch(query: String): Result<PaginatedSearch> {
+            trackSearch(query, 1)
             return Result.failure(throwable)
         }
 

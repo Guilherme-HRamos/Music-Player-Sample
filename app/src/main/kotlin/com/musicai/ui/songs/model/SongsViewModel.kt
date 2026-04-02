@@ -51,7 +51,7 @@ class SongsViewModelImpl @Inject constructor(
     private val _state = MutableStateFlow(SongsState())
     override val state = _state.asStateFlow()
 
-    private val _navigationEvents = MutableSharedFlow<SongsNavigationEvent>()
+    private val _navigationEvents = MutableSharedFlow<SongsNavigationEvent>(replay = 1)
     override val navigationEvents = _navigationEvents.asSharedFlow()
 
     private var songsSourceJob: Job? = null

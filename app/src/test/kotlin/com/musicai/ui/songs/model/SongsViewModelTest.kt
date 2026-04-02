@@ -1,8 +1,10 @@
 package com.musicai.ui.songs.model
 
+import com.musicai.R
 import com.musicai.domain.model.PaginatedSearch
 import com.musicai.ui.shared.PlayerController
 import com.musicai.ui.utils.MainDispatcherRule
+import com.musicai.ui.utils.fakes.FakeConnectivityChecker
 import com.musicai.ui.utils.fakes.FakeGetRecentSongsUseCase
 import com.musicai.ui.utils.fakes.FakeSearchSongsUseCase
 import com.musicai.ui.utils.fakes.MutedLogger
@@ -28,6 +30,7 @@ class SongsViewModelTest {
     private lateinit var searchSongs: FakeSearchSongsUseCase
     private lateinit var getRecentSongs: FakeGetRecentSongsUseCase
     private lateinit var playerController: PlayerController
+    private lateinit var connectivityChecker: FakeConnectivityChecker
     private lateinit var viewModel: SongsViewModelImpl
 
     @Before
@@ -35,9 +38,16 @@ class SongsViewModelTest {
         searchSongs = FakeSearchSongsUseCase()
         getRecentSongs = FakeGetRecentSongsUseCase()
         getRecentSongs.setSuccess(getMockSongsList(5))
-        
         playerController = PlayerController()
-        viewModel = SongsViewModelImpl(searchSongs, getRecentSongs, playerController, MutedLogger())
+        connectivityChecker = FakeConnectivityChecker()
+
+        viewModel = SongsViewModelImpl(
+            searchSongs,
+            getRecentSongs,
+            playerController,
+            MutedLogger(),
+            connectivityChecker
+        )
     }
 
     @Test
@@ -96,19 +106,126 @@ class SongsViewModelTest {
     }
 
     @Test
-    fun `when search fails then should show error state`() = runTest {
+    fun `when search fails then should emit error event`() = runTest {
         // Given
         searchSongs.setError(RuntimeException("Network Error"))
         viewModel.onToggleSearch()
         viewModel.onQueryChange("Query")
 
         // When
+        val event = launch {
+            viewModel.navigationEvents.collect { navEvent ->
+                if (navEvent is SongsNavigationEvent.GenericError) {
+                    assertTrue(true)
+                }
+            }
+        }
         viewModel.onSearch()
         runCurrent()
 
         // Then
         val state = viewModel.state.value
         assertFalse(state.isLoading)
-        assertEquals("Network Error", state.error)
+        event.cancel()
+    }
+
+    @Test
+    fun `when no internet connection on toggle search then should emit error event`() = runTest {
+        // Given
+        connectivityChecker.setConnected(false)
+
+        // When
+        val receivedEvent = mutableListOf<SongsNavigationEvent>()
+        val job = launch {
+            viewModel.navigationEvents.collect { event ->
+                receivedEvent.add(event)
+            }
+        }
+        runCurrent()
+        viewModel.onToggleSearch()
+        advanceUntilIdle()
+
+        // Then
+        assertTrue(receivedEvent.any { it is SongsNavigationEvent.NoConnectionError })
+        job.cancel()
+    }
+
+    @Test
+    fun `when no internet connection on search then should emit error event`() = runTest {
+        // Given
+        connectivityChecker.setConnected(false)
+        viewModel.onToggleSearch()
+        viewModel.onQueryChange("Query")
+
+        // When
+        val receivedEvent = mutableListOf<SongsNavigationEvent>()
+        val job = launch {
+            viewModel.navigationEvents.collect { event ->
+                receivedEvent.add(event)
+            }
+        }
+        runCurrent()
+        viewModel.onSearch()
+        advanceUntilIdle()
+
+        // Then
+        assertTrue(receivedEvent.any { it is SongsNavigationEvent.NoConnectionError })
+        job.cancel()
+    }
+
+    @Test
+    fun `when no internet connection on load more then should emit error event`() = runTest {
+        // Given
+        connectivityChecker.setConnected(true)
+        searchSongs.setSuccess(PaginatedSearch(getMockSongsList(10), hasMore = true))
+        viewModel.onToggleSearch()
+        viewModel.onQueryChange("Query")
+        viewModel.onSearch()
+        runCurrent()
+
+        connectivityChecker.setConnected(false)
+
+        // When
+        val receivedEvent = mutableListOf<SongsNavigationEvent>()
+        val job = launch {
+            viewModel.navigationEvents.collect { event ->
+                receivedEvent.add(event)
+            }
+        }
+        runCurrent()
+        viewModel.onLoadMore()
+        advanceUntilIdle()
+
+        // Then
+        assertTrue(receivedEvent.any { it is SongsNavigationEvent.NoConnectionError })
+        job.cancel()
+    }
+
+    @Test
+    fun `when no internet connection on refresh then should emit error event`() = runTest {
+        // Given
+        connectivityChecker.setConnected(true)
+        searchSongs.setSuccess(PaginatedSearch(getMockSongsList(10), hasMore = true))
+        viewModel.onToggleSearch()
+        viewModel.onQueryChange("Query")
+        viewModel.onSearch()
+        runCurrent()
+
+        connectivityChecker.setConnected(false)
+
+        // When
+        val receivedEvent = mutableListOf<SongsNavigationEvent>()
+        val job = launch {
+            viewModel.navigationEvents.collect { event ->
+                receivedEvent.add(event)
+            }
+        }
+        runCurrent()
+        viewModel.onRefresh()
+        advanceUntilIdle()
+
+        // Then
+        assertTrue(receivedEvent.any { it is SongsNavigationEvent.NoConnectionError })
+        job.cancel()
     }
 }

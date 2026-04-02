@@ -36,7 +36,7 @@ class AlbumViewModelImpl @Inject constructor(
     private val _state = MutableStateFlow(AlbumState(isLoading = true))
     override val state = _state.asStateFlow()
 
-    private val _navigationEvents = MutableSharedFlow<AlbumNavigationEvent>()
+    private val _navigationEvents = MutableSharedFlow<AlbumNavigationEvent>(replay = 1)
     override val navigationEvents = _navigationEvents.asSharedFlow()
 
     init {
