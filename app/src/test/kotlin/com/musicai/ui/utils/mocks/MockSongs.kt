@@ -13,6 +13,6 @@ internal fun getMockSong(id: Long = 1L) = Song(
     trackTimeMillis = 180000L
 )
 
-internal fun getMockSongsList(size: Int = 3): List<Song> {
-    return (1..size).map { getMockSong(it.toLong()) }
+internal fun getMockSongsList(size: Int = 3, startId: Long = 1L): List<Song> {
+    return (0 until size).map { getMockSong(startId + it.toLong()) }
 }

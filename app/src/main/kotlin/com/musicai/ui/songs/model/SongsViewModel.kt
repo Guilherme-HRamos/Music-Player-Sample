@@ -62,7 +62,6 @@ class SongsViewModelImpl @Inject constructor(
         songsSourceJob = getRecentSongs()
             .onEach { recent ->
                 if (!_state.value.isSearchActive) {
-                    logWip("SongsViewModel -> recent: $recent")
                     _state.update { it.copy(songs = recent.distinctBy { song -> song.trackId }) }
                 }
             }

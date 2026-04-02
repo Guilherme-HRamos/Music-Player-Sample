@@ -4,16 +4,23 @@ import com.musicai.domain.model.Album
 import com.musicai.domain.usecase.GetAlbumSongsUseCase
 import com.musicai.ui.utils.mocks.getAlbumWithEmptySongs
 
-internal sealed class FakeGetAlbumSongsUseCase : GetAlbumSongsUseCase {
-    data object Success : FakeGetAlbumSongsUseCase() {
-        override suspend fun invoke(collectionId: Long): Result<Album> {
-            return Result.success(getAlbumWithEmptySongs(collectionId))
-        }
+class FakeGetAlbumSongsUseCase : GetAlbumSongsUseCase {
+    var invokeCalls = 0
+    var lastCollectionId: Long? = null
+
+    private var result: Result<Album> = Result.success(getAlbumWithEmptySongs(0L))
+
+    fun setSuccess(album: Album) {
+        result = Result.success(album)
     }
 
-    object Error : FakeGetAlbumSongsUseCase() {
-        override suspend fun invoke(collectionId: Long): Result<Album> {
-            return Result.failure(IllegalArgumentException())
-        }
+    fun setError(e: Throwable) {
+        result = Result.failure(e)
+    }
+
+    override suspend fun invoke(collectionId: Long): Result<Album> {
+        invokeCalls++
+        lastCollectionId = collectionId
+        return result
     }
 }
