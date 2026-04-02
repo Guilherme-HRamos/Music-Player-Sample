@@ -16,6 +16,10 @@ The home screen of the application.
 - **Song options sheet** — bottom sheet triggered via the "more" icon, with a "View Album" shortcut
 - **Offline feedback** — toasts informing the user when connectivity is unavailable
 
+<img width="200" alt="Screenshot_1775154051" src="https://github.com/user-attachments/assets/7af5db7b-2af4-4637-b2b4-fe7b937b0461" />
+<img width="200" alt="Screenshot_1775154059" src="https://github.com/user-attachments/assets/aa6355b5-37e1-4f80-9a15-978b4f492f4e" />
+<img width="200" alt="Screenshot_1775154173" src="https://github.com/user-attachments/assets/93540510-7ccf-48ad-ba71-6331ce61533d" />
+
 ### Player Screen
 Opened when tapping any song.
 
@@ -27,6 +31,9 @@ Opened when tapping any song.
 - **Album shortcut** — navigates directly to the album screen from the player
 - **Error feedback** — toasts for unavailable previews, playback errors, and connectivity issues
 
+<img width="200" alt="Screenshot_1775154103" src="https://github.com/user-attachments/assets/44d7bee4-0306-4412-ae2b-cc9a4739e946" />
+<img width="200" alt="Screenshot_1775154177" src="https://github.com/user-attachments/assets/75da8a78-589a-40d9-95f9-71ccf200b5a1" />
+
 ### Album Screen
 Opened from the song options sheet or the player.
 
@@ -34,6 +41,9 @@ Opened from the song options sheet or the player.
 - **Full track list** — all songs from the album, each with thumbnail and duration
 - **Retry** — visible when the album fails to load, allowing the user to try again without leaving the screen
 - **Offline feedback** — toasts when connectivity is unavailable
+
+<img width="200" alt="Screenshot_1775154106" src="https://github.com/user-attachments/assets/ecd00586-83c7-4dc3-9350-916fa84e0ea3" />
+<img width="200" alt="Screenshot_1775154182" src="https://github.com/user-attachments/assets/00675eb6-3389-4317-b6fe-19ea8ad00631" />
 
 ---
 
