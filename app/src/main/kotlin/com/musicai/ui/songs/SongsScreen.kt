@@ -37,6 +37,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -201,6 +203,13 @@ private fun SongsTopBar(
     onClear: () -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(isSearchActive) {
+        if (isSearchActive) {
+            focusRequester.requestFocus()
+        }
+    }
 
     Row(
         modifier = Modifier
@@ -270,6 +279,7 @@ private fun SongsTopBar(
             shape = RoundedCornerShape(MusicTheme.radius.medium), // Add rounding for a modern look
             modifier = Modifier
                 .fillMaxWidth()
+                .focusRequester(focusRequester)
                 .padding(horizontal = MusicTheme.spacing.medium, vertical = MusicTheme.spacing.small),
         )
     }
