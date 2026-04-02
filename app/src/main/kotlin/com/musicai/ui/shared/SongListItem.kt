@@ -1,7 +1,6 @@
 package com.musicai.ui.shared
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,27 +9,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.musicai.R
 import com.musicai.domain.model.Song
-import com.musicai.ui.theme.ColorDarkText
+import com.musicai.ui.shared.components.RoundedArtwork
+import com.musicai.ui.shared.components.SongInfoDisplay
 import com.musicai.ui.theme.MusicAITheme
 import com.musicai.ui.theme.MusicTheme
 
@@ -38,8 +31,9 @@ import com.musicai.ui.theme.MusicTheme
 fun SongListItem(
     song: Song,
     onClick: () -> Unit,
-    onMoreClick: () -> Unit,
     modifier: Modifier = Modifier,
+    showMoreButton: Boolean = true,
+    onMoreClick: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
@@ -48,39 +42,30 @@ fun SongListItem(
             .padding(horizontal = MusicTheme.spacing.medium, vertical = MusicTheme.spacing.small),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        AsyncImage(
+        RoundedArtwork(
             model = song.artworkUrl,
             contentDescription = song.collectionName,
-            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .padding(start = MusicTheme.spacing.small)
-                .size(MusicTheme.component.listItemArtworkSize)
-                .clip(RoundedCornerShape(MusicTheme.radius.small)),
+                .size(MusicTheme.component.listItemArtworkSize),
+            radius = MusicTheme.radius.small,
         )
         Spacer(modifier = Modifier.width(MusicTheme.spacing.medium))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = song.trackName,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                modifier = Modifier.padding(top = MusicTheme.spacing.xSmall),
-                text = song.artistName,
-                style = MaterialTheme.typography.labelSmall,
-                color = ColorDarkText,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        IconButton(onClick = onMoreClick) {
-            Icon(
-                imageVector = Icons.Default.MoreVert,
-                contentDescription = stringResource(R.string.cd_more_options),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        SongInfoDisplay(
+            trackName = song.trackName,
+            artistName = song.artistName,
+            modifier = Modifier.weight(1f),
+            trackStyle = MaterialTheme.typography.bodyLarge,
+            artistStyle = MaterialTheme.typography.labelSmall,
+        )
+        if (showMoreButton) {
+            IconButton(onClick = onMoreClick) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = stringResource(R.string.cd_more_options),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
@@ -102,7 +87,6 @@ fun SongListItemPreview() {
                     trackTimeMillis = 180000L
                 ),
                 onClick = {},
-                onMoreClick = {}
             )
         }
     }
@@ -125,7 +109,6 @@ fun SongListItemListPreview() {
                     SongListItem(
                         song = song,
                         onClick = {},
-                        onMoreClick = {}
                     )
                 }
             }

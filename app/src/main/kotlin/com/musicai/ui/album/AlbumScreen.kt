@@ -1,7 +1,6 @@
 package com.musicai.ui.album
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,11 +14,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,23 +21,19 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import coil.compose.AsyncImage
 import com.musicai.R
 import com.musicai.domain.model.Album
 import com.musicai.domain.model.Song
 import com.musicai.ui.album.model.AlbumState
 import com.musicai.ui.album.model.AlbumViewModel
-import com.musicai.ui.theme.ColorDarkText
+import com.musicai.ui.shared.components.ContentStateWrapper
+import com.musicai.ui.shared.components.RoundedArtwork
+import com.musicai.ui.shared.components.ScreenTopBar
+import com.musicai.ui.shared.components.SongInfoDisplay
 import com.musicai.ui.theme.MusicAITheme
 import com.musicai.ui.theme.MusicTheme
-import com.musicai.ui.theme.components.AppErrorState
-import com.musicai.ui.theme.components.AppLoadingIndicator
 
 @Composable
 fun AlbumScreen(
@@ -71,38 +61,17 @@ fun AlbumScreenContent(
             .statusBarsPadding()
             .navigationBarsPadding(),
     ) {
-        // Top bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(MusicTheme.component.topBarHeight)
-                .padding(horizontal = MusicTheme.spacing.small),
-            verticalAlignment = Alignment.CenterVertically,
+        ScreenTopBar(
+            title = state.album?.collectionName ?: stringResource(R.string.album_fallback),
+            onBack = onBack,
+        )
+
+        ContentStateWrapper(
+            isLoading = state.isLoading,
+            error = state.error,
+            onRetry = onRetry,
         ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = stringResource(R.string.cd_back),
-                    tint = MaterialTheme.colorScheme.onBackground,
-                )
-            }
-            Text(
-                text = state.album?.collectionName ?: stringResource(R.string.album_fallback),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-
-        when {
-            state.isLoading -> AppLoadingIndicator()
-            state.error != null -> AppErrorState(
-                message = state.error,
-                onRetry = onRetry,
-            )
-
-            state.album != null -> {
+            if (state.album != null) {
                 val album = state.album
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     // Album header
@@ -114,14 +83,11 @@ fun AlbumScreenContent(
                                 .padding(horizontal = MusicTheme.spacing.medium),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            AsyncImage(
+                            RoundedArtwork(
                                 model = album.artworkUrl,
                                 contentDescription = album.collectionName,
-                                contentScale = ContentScale.Crop,
-                                placeholder = painterResource(R.drawable.cover_sample),
-                                modifier = Modifier
-                                    .size(MusicTheme.component.albumArtworkSize)
-                                    .clip(RoundedCornerShape(MusicTheme.radius.large)),
+                                radius = MusicTheme.radius.large,
+                                modifier = Modifier.size(MusicTheme.component.albumArtworkSize),
                             )
                             Spacer(modifier = Modifier.height(MusicTheme.spacing.medium))
                             Text(
@@ -147,36 +113,20 @@ fun AlbumScreenContent(
                                 .padding(horizontal = MusicTheme.spacing.large, vertical = MusicTheme.spacing.small),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            AsyncImage(
+                            RoundedArtwork(
                                 model = album.artworkUrl,
                                 contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(MusicTheme.component.trackThumbnailSize)
-                                    .clip(RoundedCornerShape(MusicTheme.radius.small)),
+                                modifier = Modifier.size(MusicTheme.component.trackThumbnailSize),
+                                radius = MusicTheme.radius.small,
                             )
                             Spacer(modifier = Modifier.width(MusicTheme.spacing.medium))
-                            Column(
+                            SongInfoDisplay(
+                                trackName = song.trackName,
+                                artistName = song.artistName,
                                 modifier = Modifier.height(MusicTheme.component.trackThumbnailSize),
-                                verticalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                Text(
-                                    modifier = Modifier.padding(top = MusicTheme.spacing.xSmall),
-                                    text = song.trackName,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                Text(
-                                    modifier = Modifier.padding(bottom = MusicTheme.spacing.xSmall),
-                                    text = song.artistName,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = ColorDarkText,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
+                                trackStyle = MaterialTheme.typography.titleSmall,
+                                artistStyle = MaterialTheme.typography.labelSmall,
+                            )
                         }
                     }
                 }

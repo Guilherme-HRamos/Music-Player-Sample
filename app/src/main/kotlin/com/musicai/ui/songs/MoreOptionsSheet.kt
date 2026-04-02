@@ -23,9 +23,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.musicai.R
 import com.musicai.domain.model.Song
+import com.musicai.ui.shared.components.SongInfoDisplay
 import com.musicai.ui.theme.ColorSheetBackground
 import com.musicai.ui.theme.MusicAITheme
 import com.musicai.ui.theme.MusicTheme
@@ -51,21 +51,13 @@ fun MoreOptionsSheet(
                 .padding(horizontal = MusicTheme.spacing.large)
                 .padding(bottom = MusicTheme.spacing.large),
         ) {
-            Text(
-                text = song.trackName,
-                style = MaterialTheme.typography.displaySmall,
-                color = MaterialTheme.colorScheme.onSurface,
+            SongInfoDisplay(
+                trackName = song.trackName,
+                artistName = song.artistName,
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = song.artistName,
-                style = MaterialTheme.typography.labelMediumNormal,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = MusicTheme.spacing.xSmall),
-                textAlign = TextAlign.Center
+                trackStyle = MaterialTheme.typography.displaySmall,
+                artistStyle = MaterialTheme.typography.labelMediumNormal,
+                textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(MusicTheme.spacing.medium))
             TextButton(

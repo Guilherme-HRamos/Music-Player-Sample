@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -35,21 +34,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
+
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.musicai.R
 import com.musicai.domain.model.Song
 import com.musicai.plugin.utils.DurationUtils
 import com.musicai.ui.player.model.PlayerNavigationEvent
 import com.musicai.ui.player.model.PlayerState
 import com.musicai.ui.player.model.PlayerViewModel
+import com.musicai.ui.shared.components.RoundedArtwork
+import com.musicai.ui.shared.components.SongInfoDisplay
 import com.musicai.ui.songs.MoreOptionsSheet
 import com.musicai.ui.theme.ColorBackground
 import com.musicai.ui.theme.ColorSheetBackground
@@ -163,14 +161,12 @@ private fun PlayerContent(
                 contentAlignment = Alignment.Center,
             ) {
 
-                AsyncImage(
+                RoundedArtwork(
                     model = state.song?.artworkUrl?.replace("100x100bb", "600x600bb"),
                     contentDescription = state.song?.collectionName,
-                    placeholder = painterResource(R.drawable.cover_sample),
-                    contentScale = ContentScale.Crop,
+                    radius = MusicTheme.radius.large,
                     modifier = Modifier
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(MusicTheme.radius.large))
                         .aspectRatio(1f),
                 )
                 if (state.isPreparing) {
@@ -180,20 +176,11 @@ private fun PlayerContent(
 
             // Song info
             Column() {
-                Text(
-                    text = state.song?.trackName ?: "",
-                    style = MaterialTheme.typography.displayNormal,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(modifier = Modifier.height(MusicTheme.spacing.xSmall))
-                Text(
-                    text = state.song?.artistName ?: "",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                SongInfoDisplay(
+                    trackName = state.song?.trackName ?: "",
+                    artistName = state.song?.artistName ?: "",
+                    trackStyle = MaterialTheme.typography.displayNormal,
+                    artistStyle = MaterialTheme.typography.titleSmall,
                 )
 
                 Spacer(modifier = Modifier.height(MusicTheme.spacing.large))

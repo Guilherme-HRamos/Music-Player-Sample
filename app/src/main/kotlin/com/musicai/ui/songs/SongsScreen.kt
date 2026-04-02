@@ -46,17 +46,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.musicai.R
 import com.musicai.domain.model.Song
 import com.musicai.ui.shared.SongListItem
+import com.musicai.ui.shared.components.ContentStateWrapper
 import com.musicai.ui.songs.model.SongsNavigationEvent
 import com.musicai.ui.songs.model.SongsState
 import com.musicai.ui.songs.model.SongsViewModel
 import com.musicai.ui.theme.MusicAITheme
 import com.musicai.ui.theme.MusicTheme
 import com.musicai.ui.theme.components.AppErrorState
-import com.musicai.ui.theme.components.AppLoadingIndicator
 import com.musicai.ui.theme.screenTitle
 
 @Composable
-internal fun SongsScreen(
+fun SongsScreen(
     viewModel: SongsViewModel,
     onNavigateToPlayer: (Long) -> Unit,
     onNavigateToAlbum: (Long) -> Unit,
@@ -138,32 +138,32 @@ private fun SongsContent(
                 .fillMaxSize()
                 .pullRefresh(pullRefreshState),
         ) {
-            when {
-                state.isLoading -> AppLoadingIndicator()
-                state.error != null -> AppErrorState(
-                    message = state.error,
-                    onRetry = onRefresh,
-                )
-
-                state.songs.isEmpty() -> AppErrorState(
-                    message = if (state.isSearchActive) stringResource(R.string.empty_search_results) else stringResource(R.string.empty_songs_list),
-                )
-
-                else -> LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    items(items = state.songs, key = { it.trackId }) { song ->
-                        SongListItem(
-                            song = song,
-                            onClick = { onSongClick(song) },
-                            onMoreClick = { onMoreClick(song) },
-                        )
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            thickness = MusicTheme.component.horizontalDividerThickness,
-                            modifier = Modifier.padding(start = MusicTheme.component.horizontalDividerPadding),
-                        )
+            ContentStateWrapper(
+                isLoading = state.isLoading,
+                error = state.error,
+                onRetry = onRefresh,
+            ) {
+                if (state.songs.isEmpty()) {
+                    AppErrorState(
+                        message = if (state.isSearchActive) stringResource(R.string.empty_search_results) else stringResource(R.string.empty_songs_list),
+                    )
+                } else {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                    ) {
+                        items(items = state.songs, key = { it.trackId }) { song ->
+                            SongListItem(
+                                song = song,
+                                onClick = { onSongClick(song) },
+                                onMoreClick = { onMoreClick(song) },
+                            )
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                thickness = MusicTheme.component.horizontalDividerThickness,
+                                modifier = Modifier.padding(start = MusicTheme.component.horizontalDividerPadding),
+                            )
+                        }
                     }
                 }
             }
