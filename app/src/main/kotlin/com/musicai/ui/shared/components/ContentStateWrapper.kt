@@ -1,6 +1,8 @@
 package com.musicai.ui.shared.components
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.musicai.ui.shared.ErrorState
 
 /**
  * Handles the common Loading → Error → Content flow shared across multiple screens.
@@ -13,13 +15,13 @@ import androidx.compose.runtime.Composable
 @Composable
 fun ContentStateWrapper(
     isLoading: Boolean,
-    error: String?,
+    error: ErrorState? = null,
     onRetry: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     when {
         isLoading -> AppLoadingIndicator()
-        error != null -> AppErrorState(message = error, onRetry = onRetry)
+        error != null -> AppErrorState(message = stringResource(error.message), onRetry = onRetry)
         else -> content()
     }
 }

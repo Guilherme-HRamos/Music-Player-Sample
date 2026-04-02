@@ -3,6 +3,7 @@ package com.musicai.data.repository
 import com.musicai.data.utils.fakes.FakeItunesApiService
 import com.musicai.data.utils.fakes.FakeRecentSongDao
 import com.musicai.data.utils.fakes.FakeSongDao
+import com.musicai.ui.utils.fakes.MutedLogger
 import com.musicai.ui.utils.mocks.getMockSearchResponse
 import com.musicai.ui.utils.mocks.getMockSong
 import com.musicai.ui.utils.mocks.getMockSongEntity
@@ -25,7 +26,7 @@ class SongRepositoryImplTest {
         api = FakeItunesApiService()
         dao = FakeSongDao()
         recentDao = FakeRecentSongDao()
-        repository = SongRepositoryImpl(api, dao, recentDao)
+        repository = SongRepositoryImpl(api, dao, recentDao, MutedLogger())
     }
 
     @Test

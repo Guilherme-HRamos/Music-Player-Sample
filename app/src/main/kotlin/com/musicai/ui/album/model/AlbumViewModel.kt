@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.musicai.R
 import com.musicai.domain.usecase.GetAlbumSongsUseCase
 import com.musicai.plugin.utils.ConnectivityChecker
+import com.musicai.plugin.utils.Logger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +30,7 @@ class AlbumViewModelImpl @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getAlbumSongs: GetAlbumSongsUseCase,
     private val connectivityChecker: ConnectivityChecker,
+    private val logger: Logger,
 ) : ViewModel(), AlbumViewModel {
 
     private val collectionId: Long = checkNotNull(savedStateHandle["collectionId"])
@@ -45,19 +47,24 @@ class AlbumViewModelImpl @Inject constructor(
 
     private fun loadAlbum() {
         if (!connectivityChecker.isInternetAvailable()) {
+            logger.error("No internet connection while loading album (collectionId: $collectionId)")
             viewModelScope.launch {
                 _navigationEvents.emit(AlbumNavigationEvent.NoConnectionError)
+                _state.update { it.copy(isLoading = false, error = AlbumErrorState.NoConnection) }
             }
             return
         }
 
+        logger.info("Loading album with collectionId: $collectionId")
         _state.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             getAlbumSongs(collectionId)
                 .onSuccess { album ->
+                    logger.debug("Album loaded successfully. Songs count: ${album.songs.size}")
                     _state.update { it.copy(isLoading = false, album = album) }
                 }
-                .onFailure {
+                .onFailure { e ->
+                    logger.error("Failed to load album: ${e.message}", e)
                     _navigationEvents.emit(AlbumNavigationEvent.ShowError(R.string.album_load_error))
                     _state.update { it.copy(isLoading = false) }
                 }

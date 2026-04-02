@@ -79,16 +79,19 @@ class SongsViewModelImpl @Inject constructor(
 
     override fun onToggleSearch() {
         if (_state.value.isSearchActive) {
+            logger.debug("Closing search mode")
             songsSourceJob?.cancel()
             _state.update { it.copy(isSearchActive = false, query = "", songs = emptyList()) }
             observeRecentSongs()
         } else {
             if (!connectivityChecker.isInternetAvailable()) {
+                logger.error("No internet connection while opening search mode")
                 viewModelScope.launch {
                     _navigationEvents.emit(SongsNavigationEvent.NoConnectionError)
                 }
                 return
             }
+            logger.debug("Opening search mode")
             songsSourceJob?.cancel()
             _state.update { it.copy(isSearchActive = true, songs = emptyList()) }
         }
@@ -96,23 +99,27 @@ class SongsViewModelImpl @Inject constructor(
 
     override fun onSearch() {
         val query = _state.value.query.trim()
-        if (query.isBlank()) return
+        if (query.isBlank()) {
+            logger.debug("Search query is blank, skipping search")
+            return
+        }
 
         if (!connectivityChecker.isInternetAvailable()) {
+            logger.error("No internet connection while performing search for query: '$query'")
             viewModelScope.launch {
-                logger.error("No internet connection")
                 _navigationEvents.emit(SongsNavigationEvent.NoConnectionError)
             }
             return
         }
 
+        logger.info("Starting search with query: '$query'")
         songsSourceJob?.cancel()
         currentPage = 0
         _state.update { it.copy(isLoading = true, songs = emptyList(), hasMore = true, error = null) }
         songsSourceJob = viewModelScope.launch {
             searchSongs(query, page = 1)
                 .onSuccess { result ->
-                    logger.debug("Load Success -> Page=1 | Songs=${result.songs.size}")
+                    logger.debug("Search success -> Page=1 | Songs=${result.songs.size} | HasMore=${result.hasMore}")
                     currentPage = 1
                     _state.update {
                         it.copy(
@@ -123,9 +130,10 @@ class SongsViewModelImpl @Inject constructor(
                     }
                 }
                 .onFailure { e ->
-                    logger.error("Search failed: ${e.message}", e)
+                    logger.error("Search failed for query '$query': ${e.message}", e)
+                    _navigationEvents.emit(SongsNavigationEvent.GenericError)
                     _state.update {
-                        it.copy(isLoading = false, error = e.message ?: "Search failed")
+                        it.copy(isLoading = false)
                     }
                 }
         }
@@ -139,25 +147,26 @@ class SongsViewModelImpl @Inject constructor(
     override fun onLoadMore() {
         val current = _state.value
         if (current.isLoadingMore || !current.hasMore || current.query.isBlank()) {
-            logger.info("Skipping load more")
+            logger.debug("Skipping load more - isLoadingMore: ${current.isLoadingMore}, hasMore: ${current.hasMore}, query: '${current.query}'")
             return
         }
 
         if (!connectivityChecker.isInternetAvailable()) {
+            logger.error("No internet connection while loading more results for query: '${current.query}'")
             viewModelScope.launch {
-                logger.error("No internet connection")
                 _navigationEvents.emit(SongsNavigationEvent.NoConnectionError)
             }
             return
         }
 
         val nextPage = currentPage + 1
+        logger.info("Loading more results for query: '${current.query}' - Page: $nextPage")
         _state.update { it.copy(isLoadingMore = true) }
 
         viewModelScope.launch {
             searchSongs(current.query, page = nextPage)
                 .onSuccess { result ->
-                    logger.debug("Load Success -> Page=$nextPage | Songs=${result.songs.size}")
+                    logger.debug("Load more success -> Page=$nextPage | Songs=${result.songs.size} | HasMore=${result.hasMore}")
                     currentPage = nextPage
                     _state.update { state ->
                         val newSongs = (state.songs + result.songs).distinctBy { it.trackId }
@@ -169,9 +178,11 @@ class SongsViewModelImpl @Inject constructor(
                     }
                 }
                 .onFailure { e ->
-                    logger.error("Search failed: ${e.message}", e)
+                    logger.error("Load more failed for query '${current.query}' page $nextPage: ${e.message}", e)
                     _navigationEvents.emit(SongsNavigationEvent.GenericError)
-                    _state.update { it.copy(isLoadingMore = false) }
+                    _state.update {
+                        it.copy(isRefreshing = false)
+                    }
                 }
         }
     }
@@ -214,18 +225,23 @@ class SongsViewModelImpl @Inject constructor(
         }
 
         if (!connectivityChecker.isInternetAvailable()) {
+            logger.error("No internet connection while refreshing search results for query: '$query'")
             viewModelScope.launch {
                 _navigationEvents.emit(SongsNavigationEvent.NoConnectionError)
+            }
+            _state.update {
+                it.copy(isRefreshing = false, error = SongsErrorState.NoConnection)
             }
             return
         }
 
+        logger.info("Refreshing search results for query: '$query'")
         _state.update { it.copy(isRefreshing = true, error = null) }
         currentPage = 0
         songsSourceJob = viewModelScope.launch {
             searchSongs.refresh(query)
                 .onSuccess { result ->
-                    logger.debug("Refresh Success -> Page=1 | Songs=${result.songs.size}")
+                    logger.debug("Refresh success -> Songs=${result.songs.size} | HasMore=${result.hasMore}")
                     currentPage = 1
                     _state.update {
                         it.copy(
@@ -236,9 +252,10 @@ class SongsViewModelImpl @Inject constructor(
                     }
                 }
                 .onFailure { e ->
+                    logger.error("Refresh failed for query '$query': ${e.message}", e)
                     _navigationEvents.emit(SongsNavigationEvent.GenericError)
                     _state.update {
-                        it.copy(isRefreshing = false, error = e.message)
+                        it.copy(isRefreshing = false, error = SongsErrorState.RefreshFailed)
                     }
                 }
         }

@@ -5,6 +5,7 @@ import com.musicai.R
 import com.musicai.ui.utils.MainDispatcherRule
 import com.musicai.ui.utils.fakes.FakeConnectivityChecker
 import com.musicai.ui.utils.fakes.FakeGetAlbumSongsUseCase
+import com.musicai.ui.utils.fakes.MutedLogger
 import com.musicai.ui.utils.mocks.getMockAlbum
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -37,7 +38,7 @@ class AlbumViewModelTest {
 
     private fun createViewModel() {
         val savedStateHandle = SavedStateHandle(mapOf("collectionId" to collectionId))
-        viewModel = AlbumViewModelImpl(savedStateHandle, getAlbumSongs, connectivityChecker)
+        viewModel = AlbumViewModelImpl(savedStateHandle, getAlbumSongs, connectivityChecker, MutedLogger())
     }
 
     @Test
@@ -67,7 +68,7 @@ class AlbumViewModelTest {
         val receivedEvents = mutableListOf<AlbumNavigationEvent>()
         val job = launch {
             val savedStateHandle = SavedStateHandle(mapOf("collectionId" to collectionId))
-            viewModel = AlbumViewModelImpl(savedStateHandle, getAlbumSongs, connectivityChecker)
+            viewModel = AlbumViewModelImpl(savedStateHandle, getAlbumSongs, connectivityChecker, MutedLogger())
             viewModel.navigationEvents.collect { event ->
                 receivedEvents.add(event)
             }
@@ -99,7 +100,7 @@ class AlbumViewModelTest {
         val receivedEvents = mutableListOf<AlbumNavigationEvent>()
         val job = launch {
             val savedStateHandle = SavedStateHandle(mapOf("collectionId" to collectionId))
-            viewModel = AlbumViewModelImpl(savedStateHandle, getAlbumSongs, connectivityChecker)
+            viewModel = AlbumViewModelImpl(savedStateHandle, getAlbumSongs, connectivityChecker, MutedLogger())
             viewModel.navigationEvents.collect { event ->
                 receivedEvents.add(event)
             }

@@ -8,6 +8,7 @@ import com.musicai.domain.usecase.SaveRecentSongUseCase
 import com.musicai.plugin.audioPlayer.AudioPlayer
 import com.musicai.plugin.audioPlayer.AudioPlayerFactory
 import com.musicai.plugin.utils.ConnectivityChecker
+import com.musicai.plugin.utils.Logger
 import com.musicai.ui.shared.PlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -42,6 +43,7 @@ class PlayerViewModelImpl @Inject constructor(
     private val saveRecentSong: SaveRecentSongUseCase,
     private val audioPlayerFactory: AudioPlayerFactory,
     private val connectivityChecker: ConnectivityChecker,
+    private val logger: Logger,
 ) : ViewModel(), PlayerViewModel {
 
     private val _state = MutableStateFlow(PlayerState())
@@ -71,6 +73,7 @@ class PlayerViewModelImpl @Inject constructor(
     private fun initializePlayer(song: Song) {
         val url = song.previewUrl
         if (url.isNullOrBlank()) {
+            logger.warn("Preview URL not available for song: ${song.trackName}")
             viewModelScope.launch {
                 _navigationEvents.emit(PlayerNavigationEvent.ShowError(R.string.preview_not_available))
             }
@@ -78,11 +81,14 @@ class PlayerViewModelImpl @Inject constructor(
         }
 
         if (!connectivityChecker.isInternetAvailable()) {
+            logger.error("No internet connection while initializing player")
             viewModelScope.launch {
                 _navigationEvents.emit(PlayerNavigationEvent.NoConnectionError)
             }
             return
         }
+
+        logger.info("Initializing audio player for song: ${song.trackName}")
 
         _state.update { it.copy(isPreparing = true, error = null) }
 
@@ -110,6 +116,7 @@ class PlayerViewModelImpl @Inject constructor(
                 }
             }
             player.setOnErrorListener { _, _, _ ->
+                logger.error("Audio player error while playing: ${_state.value.song?.trackName}")
                 viewModelScope.launch {
                     _navigationEvents.emit(PlayerNavigationEvent.ShowError(R.string.playback_error))
                 }
@@ -125,10 +132,12 @@ class PlayerViewModelImpl @Inject constructor(
     override fun onPlayPause() {
         val mp = audioPlayer ?: return
         if (mp.isPlaying) {
+            logger.debug("Pausing playback")
             mp.pause()
             stopProgressTracking()
             _state.update { it.copy(isPlaying = false) }
         } else {
+            logger.debug("Resuming playback")
             mp.start()
             _state.update { it.copy(isPlaying = true) }
             startProgressTracking()
@@ -141,16 +150,23 @@ class PlayerViewModelImpl @Inject constructor(
     }
 
     override fun onNext() {
-        val nextSong = playerController.next() ?: return
+        val nextSong = playerController.next() ?: run {
+            logger.debug("No next song available")
+            return
+        }
         switchSong(nextSong)
     }
 
     override fun onPrevious() {
-        val prevSong = playerController.previous() ?: return
+        val prevSong = playerController.previous() ?: run {
+            logger.debug("No previous song available")
+            return
+        }
         switchSong(prevSong)
     }
 
     private fun switchSong(song: Song) {
+        logger.info("Switching to song: ${song.trackName}")
         stopProgressTracking()
         audioPlayer?.release()
         audioPlayer = null
