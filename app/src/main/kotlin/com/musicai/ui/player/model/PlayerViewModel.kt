@@ -2,6 +2,7 @@ package com.musicai.ui.player.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.musicai.R
 import com.musicai.domain.model.Song
 import com.musicai.domain.usecase.SaveRecentSongUseCase
 import com.musicai.plugin.audioPlayer.AudioPlayer
@@ -70,7 +71,9 @@ class PlayerViewModelImpl @Inject constructor(
     private fun initializePlayer(song: Song) {
         val url = song.previewUrl
         if (url.isNullOrBlank()) {
-            _state.update { it.copy(error = "Preview not available for this track") }
+            viewModelScope.launch {
+                _navigationEvents.emit(PlayerNavigationEvent.ShowError(R.string.preview_not_available))
+            }
             return
         }
 
@@ -78,7 +81,6 @@ class PlayerViewModelImpl @Inject constructor(
             viewModelScope.launch {
                 _navigationEvents.emit(PlayerNavigationEvent.NoConnectionError)
             }
-            _state.update { it.copy(error = "No internet connection") }
             return
         }
 
@@ -109,10 +111,10 @@ class PlayerViewModelImpl @Inject constructor(
             }
             player.setOnErrorListener { _, _, _ ->
                 viewModelScope.launch {
-                    _navigationEvents.emit(PlayerNavigationEvent.GenericError)
+                    _navigationEvents.emit(PlayerNavigationEvent.ShowError(R.string.playback_error))
                 }
                 _state.update {
-                    it.copy(isPreparing = false, error = "Could not play this track")
+                    it.copy(isPreparing = false)
                 }
                 true
             }

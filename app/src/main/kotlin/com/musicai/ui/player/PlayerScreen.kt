@@ -74,8 +74,8 @@ fun PlayerScreen(
                 is PlayerNavigationEvent.NoConnectionError -> {
                     Toast.makeText(context, R.string.no_internet_connection, Toast.LENGTH_SHORT).show()
                 }
-                is PlayerNavigationEvent.GenericError -> {
-                    Toast.makeText(context, R.string.generic_error, Toast.LENGTH_SHORT).show()
+                is PlayerNavigationEvent.ShowError -> {
+                    Toast.makeText(context, event.messageResId, Toast.LENGTH_SHORT).show()
                 }
             }
         }

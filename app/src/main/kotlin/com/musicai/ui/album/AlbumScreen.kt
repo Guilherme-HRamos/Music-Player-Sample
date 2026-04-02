@@ -1,5 +1,6 @@
 package com.musicai.ui.album
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,15 +18,18 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.musicai.R
 import com.musicai.domain.model.Album
 import com.musicai.domain.model.Song
+import com.musicai.ui.album.model.AlbumNavigationEvent
 import com.musicai.ui.album.model.AlbumState
 import com.musicai.ui.album.model.AlbumViewModel
 import com.musicai.ui.shared.components.ContentStateWrapper
@@ -41,6 +45,21 @@ fun AlbumScreen(
     onBack: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.navigationEvents.collect { event ->
+            when (event) {
+                is AlbumNavigationEvent.NoConnectionError -> {
+                    Toast.makeText(context, R.string.no_internet_connection, Toast.LENGTH_SHORT).show()
+                }
+                is AlbumNavigationEvent.ShowError -> {
+                    Toast.makeText(context, event.messageResId, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     AlbumScreenContent(
         state = state,
         onBack = onBack,

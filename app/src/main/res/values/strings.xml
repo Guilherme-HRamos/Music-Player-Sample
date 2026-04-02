@@ -16,6 +16,13 @@
     <string name="no_internet_connection">No internet connection.</string>
     <string name="generic_error">Something went wrong. Please, try again later.</string>
 
+    <!-- Player -->
+    <string name="preview_not_available">Preview not available for this track.</string>
+    <string name="playback_error">Could not play this track.</string>
+
+    <!-- Album -->
+    <string name="album_load_error">Could not load album.</string>
+
     <!-- Content Descriptions -->
     <string name="cd_search">Search</string>
     <string name="cd_clear">Clear</string>
