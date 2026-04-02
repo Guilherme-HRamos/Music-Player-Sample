@@ -262,6 +262,126 @@ If the network call fails, the repository falls back to the Room DB cache for th
 
 ---
 
+## Testing Approach
+
+### No Mocks — Hand-Written Fakes
+
+The test suite relies entirely on **hand-written fakes** rather than mocking frameworks (Mockito, MockK, etc.). Every external dependency has a dedicated fake class that implements the same interface as the production counterpart.
+
+This approach has several advantages over mocks:
+- Fakes are explicit and readable — there is no annotation magic or implicit behavior
+- Fakes can hold real state, making multi-step tests (e.g. "call once, change result, call again") straightforward to express
+- Compilation catches interface drift immediately — if a production interface changes, every fake that implements it breaks at compile time, not at runtime
+- Fakes are reusable across all test classes without any shared setup boilerplate
+
+### Fake Inventory
+
+```
+app/src/test/kotlin/
+├── com/musicai/ui/utils/fakes/
+│   ├── FakeConnectivityChecker.kt
+│   ├── FakeSearchSongsUseCase.kt
+│   ├── FakeGetRecentSongsUseCase.kt
+│   ├── FakeGetAlbumSongsUseCase.kt
+│   ├── FakeSaveRecentSongUseCase.kt
+│   ├── FakeSongRepository.kt
+│   └── MutedLogger.kt
+└── com/musicai/data/utils/fakes/
+    ├── FakeItunesApiService.kt
+    ├── FakeSongDao.kt
+    └── FakeRecentSongDao.kt
+```
+
+### How Each Fake Works
+
+**`FakeConnectivityChecker`**
+Controls the connectivity state via `setConnected(Boolean)`. Tests that verify offline behavior simply call `setConnected(false)` before the action under test.
+
+```kotlin
+connectivityChecker.setConnected(false)
+viewModel.onSearch()
+// assert NoConnectionError event was emitted
+```
+
+---
+
+**`FakeSearchSongsUseCase` / `FakeGetAlbumSongsUseCase` / `FakeGetRecentSongsUseCase`**
+Each use case fake exposes `setSuccess(...)` and `setError(...)` to control the next result, plus read-only counters (`invokeCalls`, `lastQuery`, `lastCollectionId`, etc.) to assert that the ViewModel called the use case with the expected arguments.
+
+```kotlin
+searchSongs.setSuccess(PaginatedSearch(songs, hasMore = true))
+viewModel.onSearch()
+assertEquals(1, searchSongs.invokeCalls)
+assertEquals("Beatles", searchSongs.lastQuery)
+```
+
+---
+
+**`FakeSongRepository`**
+A sealed class with three concrete variants, covering all behavioral states the repository can be in:
+
+| Variant | Behaviour |
+|---------|-----------|
+| `FakeSongRepository.Success` | Returns configurable song lists and paginated results |
+| `FakeSongRepository.Empty` | Returns success with empty collections |
+| `FakeSongRepository.Error` | Returns `Result.failure(throwable)` for every operation |
+
+All variants share a common base that tracks call counts and last arguments, so assertions remain identical regardless of which variant is used:
+
+```kotlin
+val repo = FakeSongRepository.Error(IOException("timeout"))
+// inject into use case under test
+// assert the use case propagates the failure correctly
+```
+
+---
+
+**`FakeItunesApiService`**
+Supports a **queue of sequential responses** via `addSearchResponse(...)`, which are consumed in order. Once the queue is empty, it falls back to a `defaultSearchResponse`. An `error` property can be set to make every call throw, testing network failure paths at the repository level.
+
+```kotlin
+api.addSearchResponse(getMockSearchResponse(count = 40)) // first call
+api.addSearchResponse(getMockSearchResponse(count = 10)) // second call (prefetch)
+```
+
+---
+
+**`MutedLogger`**
+A no-op implementation of the `Logger` interface. Injected into all ViewModels and the repository during tests to suppress log output and satisfy the constructor without side effects.
+
+---
+
+### Test Structure by Layer
+
+| Layer | What is tested | Dependencies replaced by |
+|-------|---------------|--------------------------|
+| `SongsViewModelTest` | ViewModel state + event emission | `FakeSearchSongsUseCase`, `FakeGetRecentSongsUseCase`, `FakeConnectivityChecker`, `MutedLogger` |
+| `AlbumViewModelTest` | ViewModel state + event emission | `FakeGetAlbumSongsUseCase`, `FakeConnectivityChecker`, `MutedLogger` |
+| `SongRepositoryImplTest` | Pagination logic, cache recovery, deduplication | `FakeItunesApiService`, `FakeSongDao`, `FakeRecentSongDao`, `MutedLogger` |
+| `SearchSongsUseCaseTest` | Use case delegation | `FakeSongRepository` |
+| `GetAlbumSongsUseCaseTest` | Use case delegation + Album model mapping | `FakeSongRepository` |
+| `GetRecentSongsUseCaseTest` | Use case delegation | `FakeSongRepository` |
+| `SaveRecentSongUseCaseTest` | Use case delegation | `FakeSongRepository` |
+
+### Coroutine Testing
+
+All ViewModel and repository tests run inside `runTest` from `kotlinx-coroutines-test` with a `MainDispatcherRule` that replaces the main dispatcher with `UnconfinedTestDispatcher`. This makes coroutines run synchronously and deterministically, without any real delays or threading.
+
+For tests that assert on `SharedFlow` event emissions, the collection is started in a `launch` block before triggering the action, followed by `runCurrent()` to ensure the collector is subscribed, and `advanceUntilIdle()` to drain all pending coroutine work before asserting:
+
+```kotlin
+val receivedEvents = mutableListOf<SongsMessageEvent>()
+val job = launch { viewModel.messageEvents.collect { receivedEvents.add(it) } }
+runCurrent()                  // ensure collector is subscribed
+viewModel.onToggleSearch()    // trigger the action
+advanceUntilIdle()            // drain all coroutine work
+
+assertTrue(receivedEvents.any { it is SongsMessageEvent.NoConnectionError })
+job.cancel()
+```
+
+---
+
 ## How to Run
 
 ### Requirements
