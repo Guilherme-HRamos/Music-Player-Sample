@@ -32,6 +32,7 @@ import com.musicai.R
 import com.musicai.domain.model.Song
 import com.musicai.ui.theme.ColorDarkText
 import com.musicai.ui.theme.MusicAITheme
+import com.musicai.ui.theme.MusicTheme
 
 @Composable
 fun SongListItem(
@@ -44,7 +45,7 @@ fun SongListItem(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(horizontal = MusicTheme.spacing.medium, vertical = MusicTheme.spacing.small),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         AsyncImage(
@@ -52,11 +53,11 @@ fun SongListItem(
             contentDescription = song.collectionName,
             contentScale = ContentScale.Crop,
             modifier = Modifier
-                .padding(start = 8.dp)
-                .size(52.dp)
-                .clip(RoundedCornerShape(8.dp)),
+                .padding(start = MusicTheme.spacing.small)
+                .size(MusicTheme.component.listItemArtworkSize)
+                .clip(RoundedCornerShape(MusicTheme.radius.small)),
         )
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(MusicTheme.spacing.medium))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = song.trackName,
@@ -66,7 +67,7 @@ fun SongListItem(
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.padding(top = MusicTheme.spacing.xSmall),
                 text = song.artistName,
                 style = MaterialTheme.typography.labelSmall,
                 color = ColorDarkText,

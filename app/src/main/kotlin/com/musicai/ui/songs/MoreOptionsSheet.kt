@@ -28,6 +28,7 @@ import com.musicai.R
 import com.musicai.domain.model.Song
 import com.musicai.ui.theme.ColorSheetBackground
 import com.musicai.ui.theme.MusicAITheme
+import com.musicai.ui.theme.MusicTheme
 import com.musicai.ui.theme.labelMediumNormal
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,8 +48,8 @@ fun MoreOptionsSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 24.dp),
+                .padding(horizontal = MusicTheme.spacing.large)
+                .padding(bottom = MusicTheme.spacing.large),
         ) {
             Text(
                 text = song.trackName,
@@ -63,14 +64,14 @@ fun MoreOptionsSheet(
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 4.dp),
+                    .padding(top = MusicTheme.spacing.xSmall),
                 textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(MusicTheme.spacing.medium))
             TextButton(
                 onClick = onViewAlbum,
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(0.dp)
+                contentPadding = PaddingValues(MusicTheme.spacing.none)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -80,9 +81,9 @@ fun MoreOptionsSheet(
                         painter = painterResource(R.drawable.ic_setlist),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(MusicTheme.icon.small),
                     )
-                    Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.width(MusicTheme.spacing.medium))
                     Text(
                         text = stringResource(R.string.view_album),
                         style = MaterialTheme.typography.bodyLarge,

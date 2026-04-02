@@ -4,6 +4,7 @@ import android.app.Activity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -30,9 +31,16 @@ fun MusicAITheme(content: @Composable () -> Unit) {
         }
     }
 
-    MaterialTheme(
-        colorScheme = DarkColorScheme,
-        typography = Typography,
-        content = content,
-    )
+    CompositionLocalProvider(
+        LocalMusicSpacing provides MusicSpacing(),
+        LocalMusicRadius provides MusicRadius(),
+        LocalMusicIconSize provides MusicIconSize(),
+        LocalMusicComponentTokens provides MusicComponentTokens(),
+    ) {
+        MaterialTheme(
+            colorScheme = DarkColorScheme,
+            typography = Typography,
+            content = content,
+        )
+    }
 }

@@ -50,7 +50,7 @@ import com.musicai.ui.songs.model.SongsNavigationEvent
 import com.musicai.ui.songs.model.SongsState
 import com.musicai.ui.songs.model.SongsViewModel
 import com.musicai.ui.theme.MusicAITheme
-import com.musicai.ui.theme.MusicTokens
+import com.musicai.ui.theme.MusicTheme
 import com.musicai.ui.theme.components.AppErrorState
 import com.musicai.ui.theme.components.AppLoadingIndicator
 import com.musicai.ui.theme.screenTitle
@@ -161,8 +161,8 @@ private fun SongsContent(
                         )
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.surfaceVariant,
-                            thickness = MusicTokens.SongList.horizontalDividerThickness,
-                            modifier = Modifier.padding(start = MusicTokens.SongList.horizontalDividerPadding),
+                            thickness = MusicTheme.component.horizontalDividerThickness,
+                            modifier = Modifier.padding(start = MusicTheme.component.horizontalDividerPadding),
                         )
                     }
                 }
@@ -201,8 +201,8 @@ private fun SongsTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(MusicTokens.Default.topBarHeight)
-            .padding(horizontal = MusicTokens.Default.horizontalScreenPadding),
+            .height(MusicTheme.component.topBarHeight)
+            .padding(horizontal = MusicTheme.spacing.large),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -213,7 +213,7 @@ private fun SongsTopBar(
         )
         if (!isSearchActive)
             IconButton(
-                modifier = Modifier.size(MusicTokens.Default.iconButtonSize),
+                modifier = Modifier.size(MusicTheme.icon.large),
                 onClick = onToggleSearch,
             ) {
                 Icon(
@@ -263,10 +263,10 @@ private fun SongsTopBar(
                 unfocusedTextColor = MaterialTheme.colorScheme.onBackground,
                 cursorColor = MaterialTheme.colorScheme.onBackground,
             ),
-            shape = RoundedCornerShape(MusicTokens.Default.defaultRoundedCornerSize), // Add rounding for a modern look
+            shape = RoundedCornerShape(MusicTheme.radius.medium), // Add rounding for a modern look
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = MusicTokens.SongList.textFieldHorizontalPadding, vertical = MusicTokens.SongList.textFieldVerticalPadding),
+                .padding(horizontal = MusicTheme.spacing.medium, vertical = MusicTheme.spacing.small),
         )
     }
 }

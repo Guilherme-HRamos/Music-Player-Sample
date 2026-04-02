@@ -43,6 +43,7 @@ import com.musicai.ui.album.model.AlbumState
 import com.musicai.ui.album.model.AlbumViewModel
 import com.musicai.ui.theme.ColorDarkText
 import com.musicai.ui.theme.MusicAITheme
+import com.musicai.ui.theme.MusicTheme
 import com.musicai.ui.theme.components.AppErrorState
 import com.musicai.ui.theme.components.AppLoadingIndicator
 
@@ -76,8 +77,8 @@ fun AlbumScreenContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(72.dp)
-                .padding(horizontal = 8.dp),
+                .height(MusicTheme.component.topBarHeight)
+                .padding(horizontal = MusicTheme.spacing.small),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = onBack) {
@@ -111,8 +112,8 @@ fun AlbumScreenContent(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 16.dp)
-                                .padding(horizontal = 16.dp),
+                                .padding(bottom = MusicTheme.spacing.medium)
+                                .padding(horizontal = MusicTheme.spacing.medium),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             AsyncImage(
@@ -121,22 +122,22 @@ fun AlbumScreenContent(
                                 contentScale = ContentScale.Crop,
                                 placeholder = painterResource(R.drawable.cover_sample),
                                 modifier = Modifier
-                                    .size(120.dp)
-                                    .clip(RoundedCornerShape(20.dp)),
+                                    .size(MusicTheme.component.albumArtworkSize)
+                                    .clip(RoundedCornerShape(MusicTheme.radius.large)),
                             )
-                            Spacer(modifier = Modifier.height(16.dp))
+                            Spacer(modifier = Modifier.height(MusicTheme.spacing.medium))
                             Text(
                                 text = album.collectionName,
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onBackground,
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(MusicTheme.spacing.small))
                             Text(
                                 text = album.artistName,
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onBackground,
                             )
-                            Spacer(modifier = Modifier.height(40.dp))
+                            Spacer(modifier = Modifier.height(MusicTheme.spacing.xxLarge))
                         }
                     }
 
@@ -145,7 +146,7 @@ fun AlbumScreenContent(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 20.dp, vertical = 8.dp),
+                                .padding(horizontal = MusicTheme.spacing.large, vertical = MusicTheme.spacing.small),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             AsyncImage(
@@ -153,16 +154,16 @@ fun AlbumScreenContent(
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(RoundedCornerShape(8.dp)),
+                                    .size(MusicTheme.component.trackThumbnailSize)
+                                    .clip(RoundedCornerShape(MusicTheme.radius.small)),
                             )
-                            Spacer(modifier = Modifier.width(16.dp))
+                            Spacer(modifier = Modifier.width(MusicTheme.spacing.medium))
                             Column(
-                                modifier = Modifier.height(44.dp),
+                                modifier = Modifier.height(MusicTheme.component.trackThumbnailSize),
                                 verticalArrangement = Arrangement.SpaceBetween,
                             ) {
                                 Text(
-                                    modifier = Modifier.padding(top = 4.dp),
+                                    modifier = Modifier.padding(top = MusicTheme.spacing.xSmall),
                                     text = song.trackName,
                                     style = MaterialTheme.typography.titleSmall,
                                     color = MaterialTheme.colorScheme.onBackground,
@@ -170,7 +171,7 @@ fun AlbumScreenContent(
                                     overflow = TextOverflow.Ellipsis,
                                 )
                                 Text(
-                                    modifier = Modifier.padding(bottom = 4.dp),
+                                    modifier = Modifier.padding(bottom = MusicTheme.spacing.xSmall),
                                     text = song.artistName,
                                     style = MaterialTheme.typography.labelSmall,
                                     color = ColorDarkText,

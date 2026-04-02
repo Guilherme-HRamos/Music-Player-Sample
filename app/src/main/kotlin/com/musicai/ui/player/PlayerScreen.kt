@@ -54,6 +54,7 @@ import com.musicai.ui.songs.MoreOptionsSheet
 import com.musicai.ui.theme.ColorBackground
 import com.musicai.ui.theme.ColorSheetBackground
 import com.musicai.ui.theme.MusicAITheme
+import com.musicai.ui.theme.MusicTheme
 import com.musicai.ui.theme.displayNormal
 import com.musicai.ui.theme.labelMediumNormal
 
@@ -109,7 +110,7 @@ private fun PlayerContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp),
+                .padding(top = MusicTheme.spacing.small),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start,
         ) {
@@ -124,7 +125,7 @@ private fun PlayerContent(
             Text(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = 4.dp),
+                    .padding(start = MusicTheme.spacing.xSmall),
                 text = stringResource(R.string.now_playing),
                 style = MaterialTheme.typography.displaySmall,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -134,7 +135,7 @@ private fun PlayerContent(
 
             IconButton(
                 modifier = Modifier
-                    .padding(start = 8.dp),
+                    .padding(start = MusicTheme.spacing.small),
                 onClick = onMoreClick
             ) {
                 Icon(
@@ -149,7 +150,7 @@ private fun PlayerContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = MusicTheme.spacing.large),
             verticalArrangement = Arrangement.SpaceAround
         ) {
             // Album artwork
@@ -157,11 +158,10 @@ private fun PlayerContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(color = ColorBackground)
-                    .padding(horizontal = 52.dp)
+                    .padding(horizontal = MusicTheme.spacing.xxxLarge)
                     .aspectRatio(1f),
                 contentAlignment = Alignment.Center,
-            )
-            {
+            ) {
 
                 AsyncImage(
                     model = state.song?.artworkUrl?.replace("100x100bb", "600x600bb"),
@@ -170,7 +170,7 @@ private fun PlayerContent(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(20.dp))
+                        .clip(RoundedCornerShape(MusicTheme.radius.large))
                         .aspectRatio(1f),
                 )
                 if (state.isPreparing) {
@@ -187,7 +187,7 @@ private fun PlayerContent(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(MusicTheme.spacing.xSmall))
                 Text(
                     text = state.song?.artistName ?: "",
                     style = MaterialTheme.typography.titleSmall,
@@ -196,7 +196,7 @@ private fun PlayerContent(
                     overflow = TextOverflow.Ellipsis,
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(MusicTheme.spacing.large))
 
                 // Progress slider
                 val progress = if (state.durationMs > 0) {
@@ -234,7 +234,7 @@ private fun PlayerContent(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(MusicTheme.spacing.medium))
 
                 // Playback controls
                 Row(
@@ -245,19 +245,19 @@ private fun PlayerContent(
                     IconButton(
                         onClick = onPlayPause,
                         modifier = Modifier
-                            .size(72.dp)
-                            .background(color = ColorSheetBackground, shape = RoundedCornerShape(CornerSize(100))),
+                            .size(MusicTheme.icon.xLarge)
+                            .background(color = ColorSheetBackground, shape = RoundedCornerShape(MusicTheme.radius.full)),
                     ) {
                         Icon(
                             imageVector = if (state.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                             contentDescription = if (state.isPlaying) stringResource(R.string.cd_pause) else stringResource(R.string.cd_play),
                             tint = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.size(36.dp),
+                            modifier = Modifier.size(MusicTheme.icon.medium),
                         )
                     }
 
                     IconButton(
-                        modifier = Modifier.padding(start = 24.dp),
+                        modifier = Modifier.padding(start = MusicTheme.spacing.large),
                         onClick = onPrevious,
                         enabled = state.hasPrevious,
                     ) {
@@ -269,12 +269,12 @@ private fun PlayerContent(
                             } else {
                                 MaterialTheme.colorScheme.onSurfaceVariant
                             },
-                            modifier = Modifier.size(36.dp),
+                            modifier = Modifier.size(MusicTheme.icon.medium),
                         )
                     }
 
                     IconButton(
-                        modifier = Modifier.padding(start = 24.dp),
+                        modifier = Modifier.padding(start = MusicTheme.spacing.large),
                         onClick = onNext,
                         enabled = state.hasNext,
                     ) {
@@ -286,7 +286,7 @@ private fun PlayerContent(
                             } else {
                                 MaterialTheme.colorScheme.onSurfaceVariant
                             },
-                            modifier = Modifier.size(36.dp),
+                            modifier = Modifier.size(MusicTheme.icon.medium),
                         )
                     }
 
@@ -303,7 +303,7 @@ private fun PlayerContent(
                                 } else {
                                     MaterialTheme.colorScheme.onSurfaceVariant
                                 },
-                                modifier = Modifier.size(24.dp),
+                                modifier = Modifier.size(MusicTheme.icon.small),
                             )
                         }
                     }
@@ -313,7 +313,7 @@ private fun PlayerContent(
 
             // Error state
             state.error?.let { error ->
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(MusicTheme.spacing.medium))
                 Text(
                     text = error,
                     style = MaterialTheme.typography.bodyMedium,

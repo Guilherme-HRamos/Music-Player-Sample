@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.musicai.R
+import com.musicai.ui.theme.MusicTheme
 
 @Composable
 fun AppErrorState(
@@ -26,7 +27,7 @@ fun AppErrorState(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(MusicTheme.spacing.large),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -37,7 +38,7 @@ fun AppErrorState(
             textAlign = TextAlign.Center,
         )
         if (onRetry != null) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(MusicTheme.spacing.medium))
             Button(onClick = onRetry) {
                 Text(stringResource(R.string.retry))
             }
