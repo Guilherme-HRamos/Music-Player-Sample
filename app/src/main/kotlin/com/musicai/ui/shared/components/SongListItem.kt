@@ -1,4 +1,4 @@
-package com.musicai.ui.shared
+package com.musicai.ui.shared.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
@@ -22,8 +22,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.musicai.R
 import com.musicai.domain.model.Song
-import com.musicai.ui.shared.components.RoundedArtwork
-import com.musicai.ui.shared.components.SongInfoDisplay
 import com.musicai.ui.theme.MusicAITheme
 import com.musicai.ui.theme.MusicTheme
 

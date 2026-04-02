@@ -1,5 +1,6 @@
 package com.musicai.ui.songs
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -47,15 +49,15 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import com.musicai.R
 import com.musicai.domain.model.Song
-import com.musicai.ui.shared.SongListItem
+import com.musicai.ui.shared.components.AppErrorState
 import com.musicai.ui.shared.components.ContentStateWrapper
+import com.musicai.ui.shared.components.SongListItem
 import com.musicai.ui.shared.components.SongLoadingItem
 import com.musicai.ui.songs.model.SongsNavigationEvent
 import com.musicai.ui.songs.model.SongsState
 import com.musicai.ui.songs.model.SongsViewModel
 import com.musicai.ui.theme.MusicAITheme
 import com.musicai.ui.theme.MusicTheme
-import com.musicai.ui.theme.components.AppErrorState
 import com.musicai.ui.theme.screenTitle
 
 @Composable
@@ -66,11 +68,20 @@ fun SongsScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
+    val context = LocalContext.current
+
     LaunchedEffect(Unit) {
         viewModel.navigationEvents.collect { event ->
             when (event) {
                 is SongsNavigationEvent.NavigateToPlayer -> onNavigateToPlayer(event.trackId)
                 is SongsNavigationEvent.NavigateToAlbum -> onNavigateToAlbum(event.collectionId)
+                is SongsNavigationEvent.NoConnectionError -> {
+                    Toast.makeText(context, R.string.no_internet_connection, Toast.LENGTH_SHORT).show()
+                }
+
+                is SongsNavigationEvent.GenericError -> {
+                    Toast.makeText(context, R.string.generic_error, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

@@ -6,6 +6,7 @@ import com.musicai.domain.model.Song
 import com.musicai.domain.usecase.SaveRecentSongUseCase
 import com.musicai.plugin.audioPlayer.AudioPlayer
 import com.musicai.plugin.audioPlayer.AudioPlayerFactory
+import com.musicai.plugin.utils.ConnectivityChecker
 import com.musicai.ui.shared.PlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -39,6 +40,7 @@ class PlayerViewModelImpl @Inject constructor(
     private val playerController: PlayerController,
     private val saveRecentSong: SaveRecentSongUseCase,
     private val audioPlayerFactory: AudioPlayerFactory,
+    private val connectivityChecker: ConnectivityChecker,
 ) : ViewModel(), PlayerViewModel {
 
     private val _state = MutableStateFlow(PlayerState())
@@ -72,6 +74,14 @@ class PlayerViewModelImpl @Inject constructor(
             return
         }
 
+        if (!connectivityChecker.isInternetAvailable()) {
+            viewModelScope.launch {
+                _navigationEvents.emit(PlayerNavigationEvent.NoConnectionError)
+            }
+            _state.update { it.copy(error = "No internet connection") }
+            return
+        }
+
         _state.update { it.copy(isPreparing = true, error = null) }
 
         audioPlayer?.release()
@@ -98,6 +108,9 @@ class PlayerViewModelImpl @Inject constructor(
                 }
             }
             player.setOnErrorListener { _, _, _ ->
+                viewModelScope.launch {
+                    _navigationEvents.emit(PlayerNavigationEvent.GenericError)
+                }
                 _state.update {
                     it.copy(isPreparing = false, error = "Could not play this track")
                 }

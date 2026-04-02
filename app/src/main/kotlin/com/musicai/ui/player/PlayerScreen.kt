@@ -1,5 +1,6 @@
 package com.musicai.ui.player
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +35,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -63,11 +65,19 @@ fun PlayerScreen(
     onBack: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.navigationEvents.collect { event ->
-            if (event is PlayerNavigationEvent.NavigateToAlbum)
-                onNavigateToAlbum(event.collectionId)
+            when (event) {
+                is PlayerNavigationEvent.NavigateToAlbum -> onNavigateToAlbum(event.collectionId)
+                is PlayerNavigationEvent.NoConnectionError -> {
+                    Toast.makeText(context, R.string.no_internet_connection, Toast.LENGTH_SHORT).show()
+                }
+                is PlayerNavigationEvent.GenericError -> {
+                    Toast.makeText(context, R.string.generic_error, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -303,7 +313,7 @@ private fun PlayerContent(
                 Spacer(modifier = Modifier.height(MusicTheme.spacing.medium))
                 Text(
                     text = error,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.displaySmall,
                     color = MaterialTheme.colorScheme.error,
                 )
             }

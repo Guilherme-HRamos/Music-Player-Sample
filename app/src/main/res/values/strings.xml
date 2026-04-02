@@ -13,6 +13,8 @@
     <string name="empty_search_results">No results found</string>
     <string name="empty_songs_list">Your recent songs will appear here</string>
     <string name="search_failed">Search failed</string>
+    <string name="no_internet_connection">No internet connection.</string>
+    <string name="generic_error">Something went wrong. Please, try again later.</string>
 
     <!-- Content Descriptions -->
     <string name="cd_search">Search</string>

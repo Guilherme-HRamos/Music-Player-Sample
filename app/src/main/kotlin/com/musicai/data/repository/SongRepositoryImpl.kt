@@ -59,7 +59,7 @@ class SongRepositoryImpl @Inject constructor(
 
             val newEntities = response.results
                 .filter { it.kind == "song" }
-                .distinctBy { it.trackId }                                          // Deduplicate within response
+                .distinctBy { it.trackId } // Deduplicate within response
                 .map { it.toEntity(query = query) }
                 .filter { new -> current.buffer.none { it.trackId == new.trackId } } // Deduplicate against buffer
 

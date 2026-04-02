@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.musicai.domain.model.Song
 import com.musicai.domain.usecase.GetRecentSongsUseCase
 import com.musicai.domain.usecase.SearchSongsUseCase
-import com.musicai.plugin.utils.LogCatLogger
+import com.musicai.plugin.utils.ConnectivityChecker
 import com.musicai.plugin.utils.Logger
 import com.musicai.ui.shared.PlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,6 +45,7 @@ class SongsViewModelImpl @Inject constructor(
     private val getRecentSongs: GetRecentSongsUseCase,
     private val playerController: PlayerController,
     private val logger: Logger,
+    private val connectivityChecker: ConnectivityChecker,
 ) : ViewModel(), SongsViewModel {
 
     private val _state = MutableStateFlow(SongsState())
@@ -59,6 +60,7 @@ class SongsViewModelImpl @Inject constructor(
     init {
         observeRecentSongs()
     }
+
     private fun observeRecentSongs() {
         logger.debug("Observing recent songs")
         songsSourceJob?.cancel()
@@ -76,22 +78,34 @@ class SongsViewModelImpl @Inject constructor(
     }
 
     override fun onToggleSearch() {
-        songsSourceJob?.cancel()
-        _state.update { current ->
-            if (current.isSearchActive) {
-                current.copy(isSearchActive = false, query = "", songs = emptyList())
-            } else {
-                current.copy(isSearchActive = true, songs = emptyList())
-            }
-        }
-        if (!_state.value.isSearchActive) {
+        if (_state.value.isSearchActive) {
+            songsSourceJob?.cancel()
+            _state.update { it.copy(isSearchActive = false, query = "", songs = emptyList()) }
             observeRecentSongs()
+        } else {
+            if (!connectivityChecker.isInternetAvailable()) {
+                viewModelScope.launch {
+                    _navigationEvents.emit(SongsNavigationEvent.NoConnectionError)
+                }
+                return
+            }
+            songsSourceJob?.cancel()
+            _state.update { it.copy(isSearchActive = true, songs = emptyList()) }
         }
     }
 
     override fun onSearch() {
         val query = _state.value.query.trim()
         if (query.isBlank()) return
+
+        if (!connectivityChecker.isInternetAvailable()) {
+            viewModelScope.launch {
+                logger.error("No internet connection")
+                _navigationEvents.emit(SongsNavigationEvent.NoConnectionError)
+            }
+            return
+        }
+
         songsSourceJob?.cancel()
         currentPage = 0
         _state.update { it.copy(isLoading = true, songs = emptyList(), hasMore = true, error = null) }
@@ -129,6 +143,14 @@ class SongsViewModelImpl @Inject constructor(
             return
         }
 
+        if (!connectivityChecker.isInternetAvailable()) {
+            viewModelScope.launch {
+                logger.error("No internet connection")
+                _navigationEvents.emit(SongsNavigationEvent.NoConnectionError)
+            }
+            return
+        }
+
         val nextPage = currentPage + 1
         _state.update { it.copy(isLoadingMore = true) }
 
@@ -148,6 +170,7 @@ class SongsViewModelImpl @Inject constructor(
                 }
                 .onFailure { e ->
                     logger.error("Search failed: ${e.message}", e)
+                    _navigationEvents.emit(SongsNavigationEvent.GenericError)
                     _state.update { it.copy(isLoadingMore = false) }
                 }
         }
@@ -190,6 +213,13 @@ class SongsViewModelImpl @Inject constructor(
             return
         }
 
+        if (!connectivityChecker.isInternetAvailable()) {
+            viewModelScope.launch {
+                _navigationEvents.emit(SongsNavigationEvent.NoConnectionError)
+            }
+            return
+        }
+
         _state.update { it.copy(isRefreshing = true, error = null) }
         currentPage = 0
         songsSourceJob = viewModelScope.launch {
@@ -206,6 +236,7 @@ class SongsViewModelImpl @Inject constructor(
                     }
                 }
                 .onFailure { e ->
+                    _navigationEvents.emit(SongsNavigationEvent.GenericError)
                     _state.update {
                         it.copy(isRefreshing = false, error = e.message)
                     }
