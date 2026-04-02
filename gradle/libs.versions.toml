@@ -16,7 +16,6 @@ hiltNavigationCompose = "1.1.0"
 coroutines = "1.7.3"
 navigationCompose = "2.7.7"
 coil = "2.5.0"
-mockk = "1.13.9"
 turbine = "1.0.0"
 archCore = "2.2.0"
 material = "1.13.0"
@@ -53,7 +52,6 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 androidx-compose-material = { group = "androidx.compose.material", name = "material" }
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
-mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 androidx-arch-core-testing = { group = "androidx.arch.core", name = "core-testing", version.ref = "archCore" }
